@@ -25,7 +25,7 @@
     }
   ],
   "env": {
-    "GEMINI_KEY": "@gemini-key",
+    "GEMINI_KEY": "@gemini_key",
     "VERCEL_TOKEN": "@vercel-token"
   },
   "headers": [
