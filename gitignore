@@ -1,0 +1,32 @@
+# Variabili d'ambiente (MAI su GitHub)
+.env
+.env.local
+.env.production
+
+# Dipendenze
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Vercel
+.vercel
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Log
+*.log
+npm-debug.log*
