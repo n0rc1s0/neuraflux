@@ -8,10 +8,5 @@
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1.js" },
     { "src": "/(.*)", "dest": "/index.html" }
-  ],
-  "env": {
-    "GEMINI_KEY": "@gemini_key",
-    "SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "VERCEL_DEPLOY_TOKEN": "@vercel_deploy_token"
-  }
+  ]
 }
