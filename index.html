@@ -1,1907 +1,487 @@
 <!DOCTYPE html>
-<html lang="it" id="html-root">
+<html lang="it" id="html-root" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#050509">
-  <meta name="description" content="NeuraFlux — Crea app professionali con l'AI, senza saper programmare.">
-  <title>NeuraFlux v4.4</title>
-  <link rel="manifest" href="/public/manifest.json">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <title>Nextly — Professional AI Builder</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <style>
-    /* ── TOKENS ───────────────────────────────────────────────── */
-    :root {
-      --p: #8a2be2;
-      --c: #00e5ff;
-      --g: #00ff88;
-      --bg: #050509;
-      --glass: rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.07);
-      --dim: rgba(255,255,255,0.4);
-      --accent: #8a2be2;
-      --text-size: 14px;
-    }
+    <style>
+        :root {
+            --mint: #4ECDC4; --lavender: #9B8FE8; --coral: #FF6B6B;
+            --grad: linear-gradient(135deg, var(--mint) 0%, var(--lavender) 100%);
+            --bg: #F8F7F4; --bg2: #FFFFFF; --bg3: #F1F0EC;
+            --text: #1A1A2E; --text2: #6B6B80; --border: #E8E5DF;
+            --radius: 20px;
+        }
+        [data-theme="dark"] {
+            --bg: #0F0F14; --bg2: #16161F; --bg3: #1E1E2A;
+            --text: #F0EEF8; --text2: #9090A8; --border: #2A2A3A;
+        }
 
-    /* Accent color variants */
-    body.accent-cyan    { --accent: #00e5ff; }
-    body.accent-green   { --accent: #00ff88; }
-    body.accent-orange  { --accent: #ff8c00; }
-    body.accent-pink    { --accent: #ff4da6; }
-    body.accent-red     { --accent: #ff3b3b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; transition: 0.3s; }
+        .display { font-family: 'Syne', sans-serif; font-weight: 800; }
+        .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); }
+        
+        /* Sidebar & Navigation */
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; color: var(--text2); cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 500; }
+        .nav-item:hover { background: var(--bg3); color: var(--mint); }
+        .nav-item.active { background: rgba(78, 205, 196, 0.1); color: var(--mint); }
 
-    /* Density */
-    body.density-compact  { --spacing: 6px;  --radius: 10px; }
-    body.density-normal   { --spacing: 10px; --radius: 14px; }
-    body.density-spacious { --spacing: 16px; --radius: 18px; }
+        /* Chat System */
+        .msg-fluxy { background: var(--bg3); padding: 16px; border-radius: 20px 20px 20px 4px; margin-bottom: 12px; font-size: 13.5px; line-height: 1.6; max-width: 88%; align-self: flex-start; border: 1px solid var(--border); }
+        .msg-user { background: var(--grad); color: white; padding: 16px; border-radius: 20px 20px 4px 20px; margin-bottom: 12px; font-size: 13.5px; max-width: 88%; align-self: flex-end; box-shadow: 0 4px 15px rgba(155, 143, 232, 0.2); }
+        
+        /* Modali (Logica NeuraFlux v4.4) */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-    /* Text size */
-    body.text-sm { --text-size: 12px; }
-    body.text-md { --text-size: 14px; }
-    body.text-lg { --text-size: 16px; }
+        /* Fluxy Character */
+        .fluxy-avatar { width: 45px; height: 45px; background: #E0F7F6; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .excited #eyes-normal { display: none; }
+        .excited #eyes-happy { display: block; }
+        #eyes-happy { display: none; }
 
-    /* High contrast */
-    body.high-contrast {
-      --glass: rgba(255,255,255,0.08);
-      --border: rgba(255,255,255,0.2);
-      --dim: rgba(255,255,255,0.7);
-    }
+        /* Bottoni */
+        .btn { padding: 12px 24px; border-radius: 99px; font-weight: 700; cursor: pointer; transition: 0.2s; border: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--grad); color: white; }
+        .btn-secondary { background: var(--bg3); color: var(--text); }
 
-    /* Reduced motion */
-    body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-    }
-
-    /* ── RESET ─────────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; }
-    body {
-      background: var(--bg);
-      color: #e0e0e0;
-      font-family: 'Syne', sans-serif;
-      font-size: var(--text-size);
-    }
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(138,43,226,0.35); border-radius: 3px; }
-
-    /* ── GLASS ──────────────────────────────────────────────────── */
-    .glass {
-      background: var(--glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-    }
-
-    /* ── GRADIENTS ─────────────────────────────────────────────── */
-    .grad { background: linear-gradient(135deg, var(--accent), var(--c)); }
-    .grad-text {
-      background: linear-gradient(135deg, var(--accent), var(--c));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    /* ── GRID BG ────────────────────────────────────────────────── */
-    .grid-bg {
-      background-image:
-        linear-gradient(rgba(138,43,226,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(138,43,226,0.03) 1px, transparent 1px);
-      background-size: 44px 44px;
-    }
-
-    /* ── ANIMATIONS ─────────────────────────────────────────────── */
-    @keyframes float      { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
-    @keyframes slide-in   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes shimmer    { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-    @keyframes pulse-ring { 0%{box-shadow:0 0 0 0 rgba(138,43,226,.4)} 70%{box-shadow:0 0 0 9px rgba(138,43,226,0)} 100%{box-shadow:0 0 0 0 rgba(138,43,226,0)} }
-    @keyframes glow-orb   { 0%,100%{opacity:.1} 50%{opacity:.17} }
-    @keyframes bounce-dot { 0%,80%,100%{transform:scale(.55);opacity:.4} 40%{transform:scale(1);opacity:1} }
-    @keyframes fade-in    { from{opacity:0} to{opacity:1} }
-    @keyframes spin       { to{transform:rotate(360deg)} }
-
-    .fluxy-float { animation: float 3.2s ease-in-out infinite; }
-    .pulse-ring  { animation: pulse-ring 2s ease-out infinite; }
-    .msg-in      { animation: slide-in .22s ease-out both; }
-    .fade-in     { animation: fade-in .3s ease both; }
-
-    .shimmer-btn {
-      background: linear-gradient(90deg, var(--accent) 0%, var(--c) 40%, var(--accent) 100%);
-      background-size: 200% 100%;
-      animation: shimmer 2.8s linear infinite;
-    }
-    .shimmer-btn:hover { animation-duration: 1.3s; }
-
-    /* ── DOTS ───────────────────────────────────────────────────── */
-    .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--c); margin:0 2px; animation:bounce-dot 1.2s ease-in-out infinite; }
-    .dot:nth-child(2){animation-delay:.2s}
-    .dot:nth-child(3){animation-delay:.4s}
-
-    /* ── LOG MSG ────────────────────────────────────────────────── */
-    .msg-log {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: rgba(0,229,255,.65);
-      background: rgba(0,229,255,.05);
-      border: 1px solid rgba(0,229,255,.13);
-      border-radius: 10px;
-      padding: 7px 12px;
-    }
-
-    /* ── MODALS ─────────────────────────────────────────────────── */
-    .modal-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(5,5,9,.88);
-      z-index: 200;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.open { display: flex; animation: fade-in .2s ease; }
-
-    /* ── NAV ────────────────────────────────────────────────────── */
-    .nav-btn { transition:all .18s; border-radius:12px; padding:10px 12px; display:flex; align-items:center; gap:10px; font-size:13px; width:100%; text-align:left; cursor:pointer; color:rgba(255,255,255,.5); }
-    .nav-btn:hover { background:rgba(255,255,255,.04); color:rgba(255,255,255,.8); }
-    .nav-btn.active { background:rgba(138,43,226,.15); color:#c4a0ff; }
-
-    /* ── VERSION CHIP ───────────────────────────────────────────── */
-    .v-chip { font-size:11px; padding:4px 10px; border-radius:99px; border:1px solid rgba(255,255,255,.08); cursor:pointer; transition:all .18s; color:rgba(255,255,255,.4); width:100%; text-align:left; }
-    .v-chip:hover,.v-chip.active { border-color:rgba(138,43,226,.6); color:#c4a0ff; background:rgba(138,43,226,.1); }
-
-    /* ── AD STRIPS ──────────────────────────────────────────────── */
-    .ad-strip { font-size:11px; color:rgba(255,255,255,.32); text-align:center; padding:3px 0; }
-    .ad-strip a { color:rgba(0,229,255,.5); text-decoration:none; transition:color .15s; }
-    .ad-strip a:hover { color:#00e5ff; }
-    .ad-label { font-size:9px; color:rgba(255,255,255,.16); margin-left:8px; letter-spacing:.08em; }
-
-    /* ── PREVIEW ────────────────────────────────────────────────── */
-    #app-preview { width:100%; height:100%; border:none; display:block; background:#fff; }
-
-    /* ── PROGRESS ───────────────────────────────────────────────── */
-    .prog-track { height:5px; background:rgba(255,255,255,.06); border-radius:99px; overflow:hidden; }
-    .prog-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--c)); transition:width .4s ease; }
-
-    /* ── ONBOARDING CARDS ───────────────────────────────────────── */
-    .mode-card { border:2px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; cursor:pointer; transition:all .22s; background:rgba(255,255,255,.02); }
-    .mode-card:hover { border-color:rgba(138,43,226,.5); background:rgba(138,43,226,.06); transform:translateY(-2px); }
-    .mode-card.selected { border-color:var(--accent); background:rgba(138,43,226,.11); }
-
-    /* ── TEMPLATE CARD ──────────────────────────────────────────── */
-    .tpl-card { border:1px solid rgba(255,255,255,.07); border-radius:13px; padding:14px; cursor:pointer; transition:all .2s; background:rgba(255,255,255,.02); text-align:left; }
-    .tpl-card:hover { border-color:rgba(138,43,226,.4); background:rgba(138,43,226,.06); transform:translateY(-1px); }
-
-    /* ── ACCENT PICKER ──────────────────────────────────────────── */
-    .accent-dot { width:24px; height:24px; border-radius:50%; cursor:pointer; transition:all .18s; border:2px solid transparent; }
-    .accent-dot:hover, .accent-dot.active { border-color:white; transform:scale(1.15); }
-
-    /* ── INPUT FOCUS ────────────────────────────────────────────── */
-    input:focus, textarea:focus { outline:none !important; border-color:rgba(138,43,226,.7) !important; box-shadow:0 0 0 2px rgba(138,43,226,.18) !important; }
-
-    /* ── ORB ────────────────────────────────────────────────────── */
-    .orb { position:fixed; border-radius:50%; filter:blur(90px); pointer-events:none; animation:glow-orb 7s ease-in-out infinite; }
-    .orb1 { width:380px; height:380px; background:var(--accent); top:-120px; right:-90px; opacity:.11; }
-    .orb2 { width:280px; height:280px; background:var(--c); bottom:-80px; left:-70px; opacity:.08; animation-delay:3.5s; }
-
-    /* ── SPINNER ────────────────────────────────────────────────── */
-    .spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,.12); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
-
-    /* ── RESPONSIVE ─────────────────────────────────────────────── */
-    @media(max-width:768px)  { #sidebar{display:none} }
-    @media(max-width:1024px) { #preview-col{display:none} }
-
-    /* ── FEEDBACK MODAL ─────────────────────────────────────────── */
-    .star-btn { font-size:22px; cursor:pointer; transition:transform .15s; opacity:.4; }
-    .star-btn:hover, .star-btn.active { opacity:1; transform:scale(1.2); }
-
-    /* ── LANG FLAG ──────────────────────────────────────────────── */
-    .lang-btn { padding:8px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.1); font-size:13px; cursor:pointer; transition:all .18s; }
-    .lang-btn:hover { background:rgba(255,255,255,.04); }
-    .lang-btn.active { border-color:var(--accent); background:rgba(138,43,226,.1); color:#c4a0ff; }
-  </style>
+        /* Preview Area */
+        #preview-wrap { position: relative; flex: 1; background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .skel-loader { position: absolute; inset: 0; background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; z-index: 10; display: none; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
 </head>
+<body>
 
-<body class="grid-bg density-normal text-md">
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-
-<!-- ══ AD TOP ══════════════════════════════════════════════════ -->
-<div class="ad-strip border-b" style="border-color:rgba(255,255,255,.06)">
-  💡 <strong style="color:rgba(255,255,255,.45)">Sponsor:</strong>
-  <a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a> — Hosting gratuito, deploy istantaneo.
-  <span class="ad-label">ADV</span>
-</div>
-
-<!-- ══ MAIN ════════════════════════════════════════════════════ -->
-<div id="main-app" style="display:flex;height:calc(100vh - 52px);padding:10px;gap:10px">
-
-  <!-- SIDEBAR -->
-  <aside id="sidebar" class="glass rounded-2xl flex flex-col gap-3 p-4 shadow-2xl flex-shrink-0" style="width:240px">
-    <div style="display:flex;align-items:center;gap:9px;padding:4px 0 8px">
-      <div class="grad" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center">
-        <i data-lucide="zap" style="width:15px;height:15px;color:white;fill:white"></i>
-      </div>
-      <span class="grad-text" style="font-size:17px;font-weight:800">NeuraFlux</span>
-      <span style="margin-left:auto;font-size:9px;background:rgba(138,43,226,.2);color:#c4a0ff;padding:2px 8px;border-radius:99px">v4.4</span>
-    </div>
-
-    <nav style="display:flex;flex-direction:column;gap:3px">
-      <button class="nav-btn active" id="nav-home"      onclick="navTo('home')">
-        <i data-lucide="layout-dashboard" style="width:15px;height:15px"></i> Dashboard
-      </button>
-      <button class="nav-btn" id="nav-projects"         onclick="navTo('projects')">
-        <i data-lucide="folder-kanban" style="width:15px;height:15px"></i> Progetti
-      </button>
-      <button class="nav-btn" id="nav-templates"        onclick="openTemplates()">
-        <i data-lucide="layout-template" style="width:15px;height:15px"></i> Template
-      </button>
-      <button class="nav-btn" id="nav-settings"         onclick="openSettings()">
-        <i data-lucide="settings-2" style="width:15px;height:15px"></i> Impostazioni
-      </button>
-    </nav>
-
-    <!-- Time Machine -->
-    <div style="flex:1;overflow-y:auto">
-      <p style="font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.28);text-transform:uppercase;padding:0 4px;margin-bottom:8px">⏱ Time Machine</p>
-      <div id="version-list">
-        <p style="font-size:11px;color:rgba(255,255,255,.2);font-style:italic;padding:0 4px">Nessuna versione</p>
-      </div>
-    </div>
-
-    <!-- Status -->
-    <div style="background:linear-gradient(135deg,rgba(138,43,226,.1),rgba(0,229,255,.07));border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px">
-      <p style="font-size:9px;letter-spacing:.1em;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:8px">Sistema</p>
-      <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#4ade80;margin-bottom:5px">
-        <span style="width:6px;height:6px;background:#4ade80;border-radius:50%;animation:bounce-dot 2s ease-in-out infinite;display:inline-block"></span>
-        Gemini 2.5 Flash
-      </div>
-      <div id="mode-status" style="display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,.35)">
-        <span style="width:6px;height:6px;background:rgba(255,255,255,.2);border-radius:50%;display:inline-block"></span>
-        Lite Mode
-      </div>
-      <div id="key-status" style="display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">
-        <span style="width:6px;height:6px;background:rgba(255,255,255,.15);border-radius:50%;display:inline-block"></span>
-        Key condivisa
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAIN COL -->
-  <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
-
-    <!-- Header -->
-    <header class="glass rounded-2xl" style="height:52px;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0">
-      <i data-lucide="file-code" style="width:15px;height:15px;color:rgba(255,255,255,.35)"></i>
-      <input id="project-name-input" value="Nuova App"
-        style="background:transparent;border:none;font-size:13px;font-weight:600;color:#c4a0ff;font-family:inherit;max-width:180px"
-        onchange="saveCurrentProject()" aria-label="Nome progetto">
-      <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
-        <!-- Preview toggle -->
-        <div style="display:flex;gap:2px;background:rgba(255,255,255,.04);border-radius:9px;padding:3px">
-          <button onclick="setPreviewSize('mobile')"  id="btn-mobile"  title="Mobile"  style="padding:4px 7px;border-radius:6px;font-size:11px;transition:all .15s;color:rgba(255,255,255,.4)">📱</button>
-          <button onclick="setPreviewSize('tablet')"  id="btn-tablet"  title="Tablet"  style="padding:4px 7px;border-radius:6px;font-size:11px;transition:all .15s;color:rgba(255,255,255,.4)">📟</button>
-          <button onclick="setPreviewSize('desktop')" id="btn-desktop" title="Desktop" style="padding:4px 7px;border-radius:6px;font-size:11px;transition:all .15s;color:rgba(255,255,255,.4);background:rgba(138,43,226,.2)">🖥</button>
-        </div>
-        <button onclick="saveVersion(false)" title="Salva versione" style="padding:6px;border-radius:9px;color:rgba(255,255,255,.4);transition:all .18s" onmouseover="this.style.background='rgba(255,255,255,.05)';this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,.4)'">
-          <i data-lucide="save" style="width:15px;height:15px"></i>
-        </button>
-        <button onclick="exportZip()" title="Esporta ZIP" style="padding:6px;border-radius:9px;color:rgba(255,255,255,.4);transition:all .18s" onmouseover="this.style.background='rgba(255,255,255,.05)';this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,.4)'">
-          <i data-lucide="download" style="width:15px;height:15px"></i>
-        </button>
-        <button onclick="openDeploy()" class="shimmer-btn" style="padding:7px 14px;border-radius:99px;color:white;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;transition:transform .15s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-          <i data-lucide="rocket" style="width:13px;height:13px"></i> Pubblica
-        </button>
-      </div>
-    </header>
-
-    <!-- Chat + Preview -->
-    <div style="flex:1;display:flex;gap:10px;overflow:hidden;min-height:0">
-
-      <!-- FLUXY CHAT -->
-      <section class="glass rounded-2xl" style="width:355px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden">
-        <div style="padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.02);flex-shrink:0">
-          <div class="grad fluxy-float pulse-ring" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <i data-lucide="bot" style="width:15px;height:15px;color:white"></i>
-          </div>
-          <div style="flex:1">
-            <p style="font-weight:700;font-size:13px;line-height:1">Fluxy</p>
-            <p id="fluxy-status" style="font-size:11px;color:rgba(255,255,255,.38);margin-top:2px">Assistente NeuraFlux · Online</p>
-          </div>
-          <button onclick="clearChat()" title="Nuova chat" style="color:rgba(255,255,255,.3);transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">
-            <i data-lucide="refresh-ccw" style="width:13px;height:13px"></i>
-          </button>
-        </div>
-
-        <div id="chat-box" style="flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:9px"></div>
-
-        <div id="typing-indicator" style="display:none;padding:0 13px 7px">
-          <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:12px;border-bottom-left-radius:3px;padding:8px 13px;display:inline-flex;gap:2px">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          </div>
-        </div>
-
-        <div style="padding:9px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;background:rgba(255,255,255,.02)">
-          <div style="display:flex;gap:7px">
-            <input id="user-input" type="text"
-              placeholder="Descrivi l'app che vuoi creare..."
-              style="flex:1;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:9px 12px;font-size:13px;color:#e0e0e0;font-family:inherit;transition:all .2s"
-              onkeydown="handleInputKey(event)">
-            <button id="send-btn" onclick="handleSend()" class="grad" style="width:37px;height:37px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'" aria-label="Invia">
-              <i data-lucide="send-horizontal" style="width:14px;height:14px;color:white"></i>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- PREVIEW -->
-      <section id="preview-col" style="flex:1;display:flex;flex-direction:column;align-items:center;overflow:hidden">
-        <div id="preview-wrapper" class="glass rounded-2xl" style="width:100%;height:100%;overflow:hidden;transition:width .3s ease;position:relative">
-          <div id="preview-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
-            <div style="width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center">
-              <i data-lucide="monitor-play" style="width:26px;height:26px;color:rgba(255,255,255,.18)"></i>
-            </div>
-            <p style="color:rgba(255,255,255,.18);font-size:13px">L'anteprima apparirà qui</p>
-            <p style="color:rgba(255,255,255,.1);font-size:11px">Descrivi cosa vuoi costruire a Fluxy →</p>
-          </div>
-          <div id="preview-skeleton" style="display:none;position:absolute;inset:0;padding:20px;background:#0a0a12">
-            <div style="height:38px;border-radius:9px;margin-bottom:14px;background:linear-gradient(90deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 100%);background-size:200% 100%;animation:shimmer 1.5s linear infinite"></div>
-            <div style="height:180px;border-radius:9px;margin-bottom:11px;background:linear-gradient(90deg,rgba(255,255,255,.03) 0%,rgba(255,255,255,.06) 50%,rgba(255,255,255,.03) 100%);background-size:200% 100%;animation:shimmer 1.5s linear infinite .2s"></div>
-            <div style="height:22px;width:55%;border-radius:7px;background:linear-gradient(90deg,rgba(255,255,255,.03) 0%,rgba(255,255,255,.05) 50%,rgba(255,255,255,.03) 100%);background-size:200% 100%;animation:shimmer 1.5s linear infinite .4s"></div>
-          </div>
-          <iframe id="app-preview" style="display:none" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" title="Anteprima app"></iframe>
-        </div>
-      </section>
-    </div>
-  </div>
-</div>
-
-<!-- ══ AD BOTTOM ════════════════════════════════════════════════ -->
-<div class="ad-strip border-t" style="border-color:rgba(255,255,255,.06)">
-  ⚡ Sblocca generazioni illimitate con la tua API key gratuita →
-  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>
-  <span class="ad-label">ADV</span>
-</div>
-
-<!-- ══ FEEDBACK BUTTON (fisso in basso a sinistra) ══════════════ -->
-<button onclick="openFeedback()" style="position:fixed;bottom:44px;left:16px;z-index:90;padding:8px 14px;border-radius:99px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:12px;color:rgba(255,255,255,.55);display:flex;align-items:center;gap:6px;transition:all .2s;backdrop-filter:blur(10px)" onmouseover="this.style.background='rgba(138,43,226,.15)';this.style.color='#c4a0ff';this.style.borderColor='rgba(138,43,226,.4)'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='rgba(255,255,255,.55)';this.style.borderColor='rgba(255,255,255,.12)'">
-  💬 Feedback
-</button>
-
-
-<!-- ══════════════════════════════════════════════════════════════
-     MODAL: ONBOARDING
-══════════════════════════════════════════════════════════════ -->
-<div id="onboarding-modal" class="modal-overlay open">
-  <div class="glass rounded-2xl shadow-2xl" style="width:100%;max-width:480px;margin:16px;overflow:hidden">
-
-    <!-- Step 1 -->
-    <div id="ob-step-1" style="padding:30px">
-      <div style="text-align:center;margin-bottom:22px">
-        <div class="grad" style="width:54px;height:54px;border-radius:15px;display:flex;align-items:center;justify-content:center;margin:0 auto 13px">
-          <i data-lucide="zap" style="width:26px;height:26px;color:white;fill:white"></i>
-        </div>
-        <h1 class="grad-text" style="font-size:24px;font-weight:800">Benvenutx su NeuraFlux</h1>
-        <p style="color:rgba(255,255,255,.42);font-size:13px;margin-top:7px">Il tuo studio creativo AI — costruiamo qualcosa di straordinario.</p>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
-        <div>
-          <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px">Come ti chiami?</label>
-          <input id="ob-name" type="text" placeholder="Il tuo nome..."
-            style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:10px 13px;font-size:14px;color:#e0e0e0;font-family:inherit">
-        </div>
-        <div>
-          <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px">Lingua preferita</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="lang-btn active" id="lang-it" onclick="setObLang('it')">🇮🇹 Italiano</button>
-            <button class="lang-btn" id="lang-en" onclick="setObLang('en')">🇬🇧 English</button>
-            <button class="lang-btn" id="lang-es" onclick="setObLang('es')">🇪🇸 Español</button>
-            <button class="lang-btn" id="lang-fr" onclick="setObLang('fr')">🇫🇷 Français</button>
-          </div>
-        </div>
-      </div>
-
-      <button onclick="obStep2()" class="shimmer-btn" style="width:100%;padding:12px;border-radius:12px;color:white;font-size:14px;font-weight:700">
-        Inizia →
-      </button>
-    </div>
-
-    <!-- Step 2: Scelta modalità -->
-    <div id="ob-step-2" style="display:none;padding:26px">
-      <h2 style="font-size:17px;font-weight:700;margin-bottom:4px">Scegli come funziona l'AI 🧠</h2>
-      <p style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:18px">Puoi cambiarlo sempre nelle Impostazioni.</p>
-
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
-        <div class="mode-card" id="card-lite" onclick="selectMode('lite')">
-          <div style="display:flex;align-items:flex-start;gap:11px">
-            <span style="font-size:24px">☁️</span>
+<div id="settings-modal" class="modal" onclick="if(event.target===this) closeSettings()">
+    <div class="card modal-content p-8">
+        <h2 class="display text-2xl mb-2">Impostazioni</h2>
+        <p class="text-sm text-gray-400 mb-6">Personalizza la tua esperienza con Nextly.</p>
+        <div class="space-y-4">
             <div>
-              <p style="font-weight:700;font-size:13px;margin-bottom:3px">Lite Mode <span style="font-size:9px;background:rgba(0,229,255,.15);color:#00e5ff;padding:2px 7px;border-radius:99px;margin-left:4px">Consigliato</span></p>
-              <p style="font-size:12px;color:rgba(255,255,255,.42);line-height:1.5">Usa Gemini AI di Google — potentissimx, zero download, funziona su qualsiasi dispositivo. Richiede connessione internet.</p>
+                <label class="block text-xs font-bold uppercase mb-2">Nome Progetto</label>
+                <input id="set-proj-name" type="text" class="w-full p-3 card bg-gray-50 outline-none border-mint/20 focus:border-mint">
             </div>
-          </div>
-        </div>
-        <div class="mode-card" id="card-turbo" onclick="selectMode('turbo')">
-          <div style="display:flex;align-items:flex-start;gap:11px">
-            <span style="font-size:24px">⚡</span>
             <div>
-              <p style="font-weight:700;font-size:13px;margin-bottom:3px">Turbo Mode <span style="font-size:9px;background:rgba(138,43,226,.2);color:#c4a0ff;padding:2px 7px;border-radius:99px;margin-left:4px">PC / Mac</span></p>
-              <p style="font-size:12px;color:rgba(255,255,255,.42);line-height:1.5">AI locale sul tuo dispositivo — offline, illimitata, zero costi. Download una tantum (~1-2GB). Richiede Chrome/Edge e 4GB+ RAM.</p>
+                <label class="block text-xs font-bold uppercase mb-2">Supabase Anon Key</label>
+                <input id="set-sb-key" type="password" class="w-full p-3 card bg-gray-50 outline-none">
             </div>
-          </div>
+            <button class="btn btn-primary w-full justify-center" onclick="saveSettings()">Salva Configurazioni</button>
         </div>
-      </div>
-
-      <button onclick="obStep3()" id="ob-btn-step2" class="shimmer-btn" style="width:100%;padding:11px;border-radius:12px;color:white;font-size:13px;font-weight:700;opacity:.5" disabled>
-        Continua →
-      </button>
     </div>
-
-    <!-- Step 3A: Lite — API key -->
-    <div id="ob-step-3a" style="display:none;padding:26px">
-      <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">🔑 Configura il motore AI</h2>
-      <p style="font-size:12px;color:rgba(255,255,255,.38);margin-bottom:16px">Gratuita, 2 minuti, nessuna carta di credito.</p>
-
-      <div style="background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.14);border-radius:13px;padding:13px;margin-bottom:16px;font-size:12px;line-height:1.7;color:rgba(255,255,255,.55)">
-        💡 <strong style="color:rgba(0,229,255,.8)">Cos'è la chiave API?</strong><br>
-        È come un pass personale che ti dà accesso al motore AI di Google — completamente gratis. Nessuna carta di credito, nessun addebito. L'unico limite è ~1.500 richieste al giorno, più che sufficienti per l'uso normale.
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px">
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:9px 12px;text-decoration:none;transition:all .18s" onmouseover="this.style.borderColor='rgba(0,229,255,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-          <span style="width:21px;height:21px;border-radius:50%;background:rgba(138,43,226,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#c4a0ff;flex-shrink:0">1</span>
-          <span style="font-size:12px;color:rgba(255,255,255,.58)">Vai su <strong style="color:#00e5ff">aistudio.google.com</strong> (nuova tab)</span>
-          <i data-lucide="external-link" style="width:11px;height:11px;color:rgba(0,229,255,.45);margin-left:auto"></i>
-        </a>
-        <div style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.03);border-radius:11px;padding:9px 12px">
-          <span style="width:21px;height:21px;border-radius:50%;background:rgba(138,43,226,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#c4a0ff;flex-shrink:0">2</span>
-          <span style="font-size:12px;color:rgba(255,255,255,.48)">Accedi con il tuo account Google</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.03);border-radius:11px;padding:9px 12px">
-          <span style="width:21px;height:21px;border-radius:50%;background:rgba(138,43,226,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#c4a0ff;flex-shrink:0">3</span>
-          <span style="font-size:12px;color:rgba(255,255,255,.48)">Clicca <strong style="color:#c4a0ff">"Create API Key"</strong> → copia la chiave</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.03);border-radius:11px;padding:9px 12px">
-          <span style="width:21px;height:21px;border-radius:50%;background:rgba(138,43,226,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#c4a0ff;flex-shrink:0">4</span>
-          <span style="font-size:12px;color:rgba(255,255,255,.48)">Incollala qui sotto 👇</span>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:7px;margin-bottom:10px">
-        <input id="ob-api-key" type="password" placeholder="AIza..."
-          style="flex:1;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:9px 12px;font-size:12px;color:#e0e0e0;font-family:'JetBrains Mono',monospace"
-          oninput="checkLiteKeyInput()">
-        <button onclick="toggleKeyVis('ob-api-key')" style="padding:9px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4)">
-          <i data-lucide="eye" style="width:13px;height:13px"></i>
-        </button>
-      </div>
-      <p style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:14px">🔒 Salvata solo sul tuo dispositivo. Non la vediamo mai.</p>
-
-      <div style="display:flex;gap:7px">
-        <button onclick="skipApiKey()" style="flex:1;padding:10px;border-radius:11px;border:1px solid rgba(255,255,255,.1);font-size:12px;color:rgba(255,255,255,.42);transition:all .18s" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background='transparent'">
-          Usa chiave condivisa (5 app/giorno)
-        </button>
-        <button id="ob-save-key-btn" onclick="saveLiteKey()" class="grad" style="flex:1;padding:10px;border-radius:11px;color:white;font-size:12px;font-weight:700;opacity:.4;transition:opacity .2s" disabled>
-          Salva e inizia ✓
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 3B: Turbo — device check -->
-    <div id="ob-step-3b" style="display:none;padding:26px">
-      <div id="turbo-check" style="text-align:center;padding:10px 0">
-        <div class="spinner" style="margin:0 auto 12px;width:28px;height:28px"></div>
-        <p style="font-weight:700;font-size:14px">Controllo il tuo dispositivo...</p>
-        <p style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Verifico RAM e supporto GPU</p>
-      </div>
-      <div id="turbo-ready" style="display:none">
-        <div style="text-align:center;margin-bottom:18px">
-          <div style="font-size:40px;margin-bottom:9px">🚀</div>
-          <p style="font-weight:700;font-size:15px;color:#4ade80">Ottimx! Il dispositivo è compatibile</p>
-          <p id="turbo-device-info" style="font-size:12px;color:rgba(255,255,255,.42);margin-top:4px"></p>
-        </div>
-        <div style="background:rgba(138,43,226,.07);border:1px solid rgba(138,43,226,.2);border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:rgba(255,255,255,.52);line-height:1.6">
-          ⬇️ Verrà scaricato il motore AI (<span id="turbo-model-size">~1.4GB</span>) — una volta sola.<br>
-          <strong style="color:rgba(255,255,255,.7)">Poi funziona offline, per sempre, illimitatx.</strong>
-        </div>
-        <div class="prog-track" style="display:none;margin-bottom:7px" id="turbo-prog-track">
-          <div class="prog-fill" id="turbo-prog-fill" style="width:0%"></div>
-        </div>
-        <p id="turbo-prog-text" style="font-size:11px;color:rgba(0,229,255,.6);font-family:'JetBrains Mono',monospace;margin-bottom:13px;display:none"></p>
-        <button id="btn-start-turbo" onclick="startTurboDownload()" class="shimmer-btn" style="width:100%;padding:11px;border-radius:12px;color:white;font-size:13px;font-weight:700">
-          ⚡ Scarica il motore AI (gratuito)
-        </button>
-        <button onclick="skipApiKey()" style="width:100%;padding:9px;border-radius:11px;margin-top:7px;font-size:11px;color:rgba(255,255,255,.3);transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">
-          Preferiscx usare Lite Mode
-        </button>
-      </div>
-      <div id="turbo-fail" style="display:none;text-align:center;padding:8px 0">
-        <div style="font-size:38px;margin-bottom:11px">😔</div>
-        <p id="turbo-fail-title" style="font-weight:700;font-size:14px;margin-bottom:7px"></p>
-        <p id="turbo-fail-msg"   style="font-size:12px;color:rgba(255,255,255,.48);line-height:1.6;margin-bottom:18px"></p>
-        <button onclick="skipApiKey()" class="shimmer-btn" style="width:100%;padding:11px;border-radius:12px;color:white;font-size:13px;font-weight:700">
-          ☁️ Usa Lite Mode (ottima lo stesso!)
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════════════════
-     MODAL: SETTINGS
-══════════════════════════════════════════════════════════════ -->
-<div id="settings-modal" class="modal-overlay">
-  <div class="glass rounded-2xl shadow-2xl" style="width:100%;max-width:460px;margin:16px;padding:22px;max-height:88vh;overflow-y:auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-      <h2 style="font-size:15px;font-weight:700">⚙️ Impostazioni</h2>
-      <button onclick="closeSettings()" style="color:rgba(255,255,255,.4)" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.4)'">
-        <i data-lucide="x" style="width:17px;height:17px"></i>
-      </button>
+<div id="templates-modal" class="modal" onclick="if(event.target===this) closeTemplates()">
+    <div class="card modal-content p-8 max-w-4xl">
+        <h2 class="display text-2xl mb-6 text-center">Libreria Template</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="template-grid">
+            </div>
     </div>
-
-    <div style="display:flex;flex-direction:column;gap:20px">
-
-      <!-- MODALITÀ AI -->
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Modalità AI</label>
-        <div style="display:flex;gap:7px">
-          <button onclick="switchMode('lite')"  id="settings-lite-btn"  style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);font-size:12px;transition:all .18s">☁️ Lite</button>
-          <button onclick="switchMode('turbo')" id="settings-turbo-btn" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);font-size:12px;transition:all .18s">⚡ Turbo</button>
-        </div>
-      </div>
-
-      <!-- API KEY -->
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">API Key personale — Generatore</label>
-        <div style="display:flex;gap:7px">
-          <input id="settings-api-key" type="password" placeholder="AIza..."
-            style="flex:1;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 11px;font-size:12px;color:#e0e0e0;font-family:'JetBrains Mono',monospace">
-          <button onclick="toggleKeyVis('settings-api-key')" style="padding:9px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4)">
-            <i data-lucide="eye" style="width:13px;height:13px"></i>
-          </button>
-          <button onclick="saveSettingsKey()" class="grad" style="padding:9px 13px;border-radius:10px;color:white;font-size:12px;font-weight:700;flex-shrink:0">Salva</button>
-        </div>
-        <p style="font-size:10px;color:rgba(255,255,255,.26);margin-top:5px">Gratuita su <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:rgba(0,229,255,.5)">Google AI Studio</a>. Solo sul tuo dispositivo.</p>
-      </div>
-
-      <!-- QUALITÀ -->
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Qualità generazione</label>
-        <div style="display:flex;gap:5px">
-          <button onclick="setQuality('fast')"     id="q-fast"     style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">⚡ Veloce</button>
-          <button onclick="setQuality('balanced')" id="q-balanced" style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(138,43,226,.5);font-size:11px;color:#c4a0ff;background:rgba(138,43,226,.1);transition:all .18s">⚖️ Bilanciata</button>
-          <button onclick="setQuality('quality')"  id="q-quality"  style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">💎 Massima</button>
-        </div>
-      </div>
-
-      <!-- LINGUA APP -->
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Lingua delle app generate</label>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="setAppLang('it')" id="al-it" class="lang-btn active">🇮🇹 Italiano</button>
-          <button onclick="setAppLang('en')" id="al-en" class="lang-btn">🇬🇧 English</button>
-          <button onclick="setAppLang('es')" id="al-es" class="lang-btn">🇪🇸 Español</button>
-          <button onclick="setAppLang('fr')" id="al-fr" class="lang-btn">🇫🇷 Français</button>
-        </div>
-      </div>
-
-      <!-- ASPETTO -->
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Colore accento</label>
-        <div style="display:flex;gap:9px;flex-wrap:wrap">
-          <button onclick="setAccent('purple')" id="acc-purple" class="accent-dot active" style="background:#8a2be2" title="Viola"></button>
-          <button onclick="setAccent('cyan')"   id="acc-cyan"   class="accent-dot" style="background:#00e5ff" title="Ciano"></button>
-          <button onclick="setAccent('green')"  id="acc-green"  class="accent-dot" style="background:#00ff88" title="Verde"></button>
-          <button onclick="setAccent('orange')" id="acc-orange" class="accent-dot" style="background:#ff8c00" title="Arancio"></button>
-          <button onclick="setAccent('pink')"   id="acc-pink"   class="accent-dot" style="background:#ff4da6" title="Rosa"></button>
-          <button onclick="setAccent('red')"    id="acc-red"    class="accent-dot" style="background:#ff3b3b" title="Rosso"></button>
-        </div>
-      </div>
-
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Densità interfaccia</label>
-        <div style="display:flex;gap:5px">
-          <button onclick="setDensity('compact')"  id="den-compact"  style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">Compatta</button>
-          <button onclick="setDensity('normal')"   id="den-normal"   style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(138,43,226,.5);font-size:11px;color:#c4a0ff;background:rgba(138,43,226,.1);transition:all .18s">Normale</button>
-          <button onclick="setDensity('spacious')" id="den-spacious" style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">Spaziosa</button>
-        </div>
-      </div>
-
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Dimensione testo</label>
-        <div style="display:flex;gap:5px">
-          <button onclick="setTextSize('sm')" id="ts-sm" style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">A piccola</button>
-          <button onclick="setTextSize('md')" id="ts-md" style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(138,43,226,.5);font-size:11px;color:#c4a0ff;background:rgba(138,43,226,.1);transition:all .18s">A media</button>
-          <button onclick="setTextSize('lg')" id="ts-lg" style="flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">A grande</button>
-        </div>
-      </div>
-
-      <!-- ACCESSIBILITÀ -->
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Accessibilità</label>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-            <span style="font-size:12px;color:rgba(255,255,255,.55)">Contrasto alto</span>
-            <input type="checkbox" id="toggle-contrast" onchange="toggleContrast()" style="width:16px;height:16px;accent-color:var(--accent)">
-          </label>
-          <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-            <span style="font-size:12px;color:rgba(255,255,255,.55)">Riduci animazioni</span>
-            <input type="checkbox" id="toggle-motion" onchange="toggleMotion()" style="width:16px;height:16px;accent-color:var(--accent)">
-          </label>
-        </div>
-      </div>
-
-      <!-- PRIVACY -->
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Privacy</label>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-            <span style="font-size:12px;color:rgba(255,255,255,.55)">Salva cronologia chat</span>
-            <input type="checkbox" id="toggle-chat-history" checked onchange="toggleChatHistory()" style="width:16px;height:16px;accent-color:var(--accent)">
-          </label>
-          <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-            <span style="font-size:12px;color:rgba(255,255,255,.55)">Modalità incognito</span>
-            <input type="checkbox" id="toggle-incognito" onchange="toggleIncognito()" style="width:16px;height:16px;accent-color:var(--accent)">
-          </label>
-        </div>
-      </div>
-
-      <!-- STORAGE -->
-      <div>
-        <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:8px">Storage locale</label>
-        <div style="display:flex;gap:7px">
-          <button onclick="exportAllProjects()" style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.52);transition:all .18s" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background='transparent'">📦 Esporta tutto</button>
-          <button onclick="clearAllData()"      style="flex:1;padding:9px;border-radius:10px;border:1px solid rgba(239,68,68,.22);font-size:11px;color:rgba(239,68,68,.55);transition:all .18s" onmouseover="this.style.background='rgba(239,68,68,.05)'" onmouseout="this.style.background='transparent'">🗑 Cancella tutto</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
 </div>
 
+<div class="flex h-screen p-3 gap-3">
+    <aside class="card w-64 p-5 flex flex-col gap-6">
+        <div class="flex items-center gap-3 px-2">
+            <svg width="32" height="32" viewBox="0 0 100 100" class="fluxy-avatar">
+                <circle cx="50" cy="50" r="45" fill="url(#g)" />
+                <defs><linearGradient id="g"><stop stop-color="#4ECDC4"/><stop offset="1" stop-color="#9B8FE8"/></linearGradient></defs>
+                <path d="M30 50 Q50 20 70 50" fill="none" stroke="white" stroke-width="8" stroke-linecap="round"/>
+            </svg>
+            <h1 class="display text-xl tracking-tight">nextly</h1>
+        </div>
 
-<!-- ══════════════════════════════════════════════════════════════
-     MODAL: FEEDBACK
-══════════════════════════════════════════════════════════════ -->
-<div id="feedback-modal" class="modal-overlay">
-  <div class="glass rounded-2xl shadow-2xl" style="width:100%;max-width:420px;margin:16px;padding:22px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h2 style="font-size:15px;font-weight:700">💬 Lascia un feedback</h2>
-      <button onclick="closeFeedback()" style="color:rgba(255,255,255,.4)" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.4)'">
-        <i data-lucide="x" style="width:17px;height:17px"></i>
-      </button>
-    </div>
+        <nav class="flex flex-col gap-1">
+            <div class="nav-item active" onclick="showSection('builder')"><i data-lucide="layout"></i> Builder</div>
+            <div class="nav-item" onclick="openTemplates()"><i data-lucide="layers"></i> Templates</div>
+            <div class="nav-item" onclick="openSettings()"><i data-lucide="settings"></i> Impostazioni</div>
+            <div class="nav-item" onclick="openFeedback()"><i data-lucide="message-square"></i> Feedback</div>
+        </nav>
 
-    <div id="feedback-form-content">
-      <!-- Stelle -->
-      <p style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:8px">Come valuti NeuraFlux?</p>
-      <div style="display:flex;gap:5px;margin-bottom:14px" id="star-row">
-        <button class="star-btn" onclick="setStars(1)" id="star-1">⭐</button>
-        <button class="star-btn" onclick="setStars(2)" id="star-2">⭐</button>
-        <button class="star-btn" onclick="setStars(3)" id="star-3">⭐</button>
-        <button class="star-btn" onclick="setStars(4)" id="star-4">⭐</button>
-        <button class="star-btn" onclick="setStars(5)" id="star-5">⭐</button>
-      </div>
+        <div class="mt-auto pt-4 border-t border-border">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Time Machine</p>
+            <div id="history-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2"></div>
+        </div>
+    </aside>
 
-      <!-- Tipo -->
-      <p style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:7px">Di che tipo?</p>
-      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-        <button onclick="setFbType('bug')"        id="fbt-bug"        style="padding:5px 12px;border-radius:99px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">🐛 Bug</button>
-        <button onclick="setFbType('idea')"       id="fbt-idea"       style="padding:5px 12px;border-radius:99px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">💡 Idea</button>
-        <button onclick="setFbType('compliment')" id="fbt-compliment" style="padding:5px 12px;border-radius:99px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">💖 Complimento</button>
-        <button onclick="setFbType('other')"      id="fbt-other"      style="padding:5px 12px;border-radius:99px;border:1px solid rgba(255,255,255,.1);font-size:11px;transition:all .18s">💬 Altro</button>
-      </div>
+    <main class="flex-1 flex flex-col gap-3">
+        <header class="card h-16 flex items-center justify-between px-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-mint/10 text-mint p-2 rounded-lg"><i data-lucide="terminal" size="18"></i></div>
+                <input id="main-project-name" class="display bg-transparent border-none outline-none text-sm" value="Progetto Senza Nome">
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex bg-bg3 p-1 rounded-full border border-border">
+                    <button class="p-2 rounded-full hover:bg-white" onclick="resizePreview('mobile')"><i data-lucide="smartphone" size="16"></i></button>
+                    <button class="p-2 rounded-full hover:bg-white" onclick="resizePreview('desktop')"><i data-lucide="monitor" size="16"></i></button>
+                </div>
+                <button class="btn btn-primary py-2" onclick="openDeploy()"><i data-lucide="rocket"></i> Deploy</button>
+            </div>
+        </header>
 
-      <!-- Testo -->
-      <textarea id="feedback-text" placeholder="Raccontami tutto — più dettagli hai, più posso migliorare! 🐸"
-        style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:10px 12px;font-size:13px;color:#e0e0e0;font-family:inherit;resize:vertical;min-height:90px;margin-bottom:12px"></textarea>
+        <div class="flex-1 flex gap-3 min-h-0">
+            <section class="card w-[400px] flex flex-col overflow-hidden">
+                <div class="p-4 border-b border-border flex items-center gap-3 bg-white/50">
+                    <div class="fluxy-avatar" id="fluxy-ui-icon">
+                        <svg viewBox="0 0 100 100" width="28">
+                            <circle cx="50" cy="50" r="40" fill="#4ECDC4" />
+                            <g id="eyes-normal"><circle cx="35" cy="45" r="5" fill="white"/><circle cx="65" cy="45" r="5" fill="white"/></g>
+                            <g id="eyes-happy"><path d="M30 45 Q35 35 40 45" stroke="white" stroke-width="4" fill="none"/><path d="M60 45 Q65 35 70 45" stroke="white" stroke-width="4" fill="none"/></g>
+                            <path d="M40 65 Q50 75 60 65" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Fluxy</p>
+                        <p class="text-[10px] text-mint font-bold uppercase">AI Expert</p>
+                    </div>
+                </div>
 
-      <p style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:14px">Il tuo feedback viene analizzato da un'AI — se è divertente o interessante, potrebbe finire nella mia inbox! 🐸</p>
+                <div id="chat-flow" class="flex-1 overflow-y-auto p-5 flex flex-col">
+                    </div>
 
-      <button onclick="submitFeedback()" id="feedback-send-btn" class="shimmer-btn" style="width:100%;padding:11px;border-radius:11px;color:white;font-size:13px;font-weight:700">
-        Invia feedback ✈️
-      </button>
-    </div>
+                <div class="p-4 bg-gray-50/50 border-t border-border">
+                    <div class="relative">
+                        <textarea id="user-input" rows="1" placeholder="Cosa costruiamo oggi?" 
+                            class="w-full p-4 pr-14 card border-none shadow-sm focus:ring-2 ring-mint/30 outline-none resize-none text-sm"></textarea>
+                        <button onclick="handleMainSend()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-grad text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-105 transition">
+                            <i data-lucide="send-horizontal" size="18"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
 
-    <div id="feedback-success" style="display:none;text-align:center;padding:16px 0">
-      <div style="font-size:44px;margin-bottom:11px">🎉</div>
-      <p style="font-weight:700;font-size:15px;margin-bottom:6px">Grazie mille!</p>
-      <p style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:16px">Il tuo feedback è stato ricevuto. Mi aiuta tantissimo! 💖</p>
-      <button onclick="closeFeedback()" class="grad" style="padding:9px 22px;border-radius:99px;color:white;font-size:13px;font-weight:700">Chiudi</button>
-    </div>
-  </div>
+            <section id="preview-wrap" class="card">
+                <div id="skel-loader" class="skel-loader"></div>
+                <iframe id="main-preview" class="w-full h-full border-none"></iframe>
+            </section>
+        </div>
+    </main>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════════════════
-     MODAL: DEPLOY
-══════════════════════════════════════════════════════════════ -->
-<div id="deploy-modal" class="modal-overlay">
-  <div class="glass rounded-2xl shadow-2xl" style="width:100%;max-width:410px;margin:16px;padding:22px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h2 style="font-size:15px;font-weight:700">🚀 Pubblica la tua App</h2>
-      <button onclick="closeDeploy()" style="color:rgba(255,255,255,.4)" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.4)'">
-        <i data-lucide="x" style="width:17px;height:17px"></i>
-      </button>
-    </div>
-    <div id="deploy-form">
-      <label style="font-size:10px;letter-spacing:.09em;color:rgba(255,255,255,.32);text-transform:uppercase;display:block;margin-bottom:7px">Nome sottodominio</label>
-      <div style="display:flex;align-items:center;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:0 12px;gap:5px;margin-bottom:5px">
-        <input id="deploy-name-input" type="text" placeholder="la-mia-app"
-          style="flex:1;background:transparent;border:none;padding:10px 0;font-size:13px;color:#e0e0e0;font-family:'JetBrains Mono',monospace"
-          oninput="updateDeployUrl()">
-        <span style="color:rgba(255,255,255,.28);font-size:11px;flex-shrink:0">.vercel.app</span>
-      </div>
-      <p id="deploy-url-preview" style="font-size:11px;color:rgba(0,229,255,.5);font-family:'JetBrains Mono',monospace;margin-bottom:14px"></p>
-      <div style="background:rgba(255,200,0,.06);border:1px solid rgba(255,200,0,.16);border-radius:11px;padding:10px;font-size:11px;color:rgba(255,200,0,.65);margin-bottom:14px;line-height:1.6">
-        ℹ️ Per il deploy reale aggiungi <code style="background:rgba(0,0,0,.3);padding:1px 4px;border-radius:3px">VERCEL_TOKEN</code> nelle variabili d'ambiente su Vercel. Il <strong>Link Demo</strong> funziona sempre senza nulla.
-      </div>
-      <div style="display:flex;gap:7px">
-        <button onclick="deployDemo()" style="flex:1;padding:10px;border-radius:11px;border:1px solid rgba(255,255,255,.12);font-size:12px;color:rgba(255,255,255,.55);transition:all .18s" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background='transparent'">🔗 Link Demo</button>
-        <button onclick="deployVercel()" class="shimmer-btn" style="flex:1;padding:10px;border-radius:11px;color:white;font-size:12px;font-weight:700">⚡ Deploy Vercel</button>
-      </div>
-    </div>
-    <div id="deploy-success" style="display:none;text-align:center;padding:12px 0">
-      <div style="font-size:42px;margin-bottom:11px">🎉</div>
-      <p style="font-weight:700;font-size:15px;margin-bottom:7px">La tua app è online!</p>
-      <a id="deploy-result-url" href="#" target="_blank" rel="noopener"
-        style="display:block;font-family:'JetBrains Mono',monospace;font-size:12px;color:#00e5ff;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);border-radius:10px;padding:9px;margin-bottom:14px;word-break:break-all;text-decoration:none;transition:all .18s"
-        onmouseover="this.style.background='rgba(0,229,255,.12)'" onmouseout="this.style.background='rgba(0,229,255,.07)'"></a>
-      <button onclick="closeDeploy()" class="grad" style="padding:9px 22px;border-radius:99px;color:white;font-size:13px;font-weight:700">Continua a costruire ✨</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════════════════════════
-     MODAL: TEMPLATES
-══════════════════════════════════════════════════════════════ -->
-<div id="templates-modal" class="modal-overlay">
-  <div class="glass rounded-2xl shadow-2xl" style="width:100%;max-width:520px;margin:16px;padding:22px;max-height:85vh;overflow-y:auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h2 style="font-size:15px;font-weight:700">🎨 Template di partenza</h2>
-      <button onclick="closeTemplates()" style="color:rgba(255,255,255,.4)" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.4)'">
-        <i data-lucide="x" style="width:17px;height:17px"></i>
-      </button>
-    </div>
-    <div id="templates-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"></div>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════════════════════════
-     JAVASCRIPT
-══════════════════════════════════════════════════════════════ -->
 <script>
-'use strict';
+    // Parte 1 finisce qui: la struttura HTML e il CSS sono pronti. 
+    // Lucide init
+    lucide.createIcons();
+</script>
+<script>
+    // ── CONFIGURAZIONE E STATO ────────────────────────────────────────
+    const CONFIG = {
+        SB_URL: "https://vostra_url.supabase.co", // Inserisci la tua URL
+        SB_KEY: "vostra_anon_key",              // Inserisci la tua Anon Key
+        IS_LOADING: false,
+        THEME: 'light'
+    };
 
-// ── EMAILJS INIT ───────────────────────────────────────────────
-emailjs.init('tx9Oa7lVIwAXBU3yy');
-const EJS_SERVICE  = 'service_hx0f99i';
-const EJS_TEMPLATE = 'template_81c72c8';
+    let state = {
+        projectName: localStorage.getItem('nx_proj_name') || "Nuovo Progetto Nextly",
+        currentCode: localStorage.getItem('nx_last_code') || "",
+        versions: JSON.parse(localStorage.getItem('nx_versions')) || [],
+        chatHistory: [] // Memoria per Gemini
+    };
 
-// ── CONFIG ─────────────────────────────────────────────────────
-const CFG = {
-  GEMINI_EP:    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-  MAX_HIST:     20,
-  RATE_LIMIT:   1800,
-  TURBO_MODELS: {
-    high: 'Phi-3.5-mini-instruct-q4f16_1-MLC',
-    mid:  'Llama-3.2-3B-Instruct-q4f16_1-MLC',
-    low:  'Llama-3.2-1B-Instruct-q4f16_1-MLC'
-  },
-  TURBO_SIZES: { high: '~2.1GB', mid: '~1.8GB', low: '~0.8GB' },
-  FEEDBACK_INTERVAL: 48 * 60 * 60 * 1000 // 48 ore in ms
-};
+    // Inizializzazione al caricamento
+    window.addEventListener('load', () => {
+        document.getElementById('main-project-name').value = state.projectName;
+        if(state.currentCode) updatePreview(state.currentCode);
+        renderHistory();
+        appendMessage('fluxy', "Bentornato! Sono **Fluxy**. Su cosa lavoriamo oggi? Posso creare landing page, dashboard o intere web app.");
+    });
 
-// ── STATE ───────────────────────────────────────────────────────
-const S = {
-  mode: 'lite', userName: '', lang: 'it', appLang: 'it',
-  isLoading: false, lastCall: 0,
-  interviewStep: 0, projectData: {},
-  chatHistory: [], versions: [],
-  currentCode: '', currentProjId: null,
-  promptHistory: [], phIndex: -1,
-  webllmEngine: null, webllmReady: false, turboModel: '',
-  quality: 'balanced', fluxyMemory: {},
-  saveChatHistory: true, incognito: false,
-  feedbackStars: 0, feedbackType: '',
-  pendingFeedbacks: []
-};
+    // ── GESTIONE CHAT E AI ───────────────────────────────────────────
+    async function handleMainSend() {
+        const input = document.getElementById('user-input');
+        const prompt = input.value.trim();
+        if (!prompt || CONFIG.IS_LOADING) return;
 
-// ── TRANSLATIONS ────────────────────────────────────────────────
-const T = {
-  it: {
-    welcome: (n) => `Ciao${n ? `, <strong>${n}</strong>` : ''}! 💖 Sono <strong>Fluxy</strong>, il tuo assistente NeuraFlux.<br><br>Sono qui per aiutarti a costruire qualcosa di straordinario — anche senza sapere una riga di codice. ✨<br><br><strong>Cosa vuoi creare oggi?</strong>`,
-    welcome_back: (n) => `Bentornatx${n ? `, <strong>${n}</strong>` : ''}! 💖 Bentrovato il tuo workspace. Cosa costruiamo oggi?`,
-    lite_note: '☁️ Lite Mode attiva. Per generazioni illimitate aggiungi la tua chiave Gemini nelle Impostazioni.',
-    turbo_note: '⚡ Turbo Mode attiva — AI locale, offline, illimitata.',
-  },
-  en: {
-    welcome: (n) => `Hi${n ? `, <strong>${n}</strong>` : ''}! 💖 I'm <strong>Fluxy</strong>, your NeuraFlux assistant.<br><br>I'm here to help you build something extraordinary — no coding skills needed. ✨<br><br><strong>What do you want to create today?</strong>`,
-    welcome_back: (n) => `Welcome back${n ? `, <strong>${n}</strong>` : ''}! 💖 Your workspace is ready. What are we building today?`,
-    lite_note: '☁️ Lite Mode active. Add your Gemini key in Settings for unlimited generations.',
-    turbo_note: '⚡ Turbo Mode active — local AI, offline, unlimited.',
-  },
-  es: {
-    welcome: (n) => `¡Hola${n ? `, <strong>${n}</strong>` : ''}! 💖 Soy <strong>Fluxy</strong>, tu asistente NeuraFlux.<br><br>Estoy aquí para ayudarte a construir algo extraordinario. ✨<br><br><strong>¿Qué quieres crear hoy?</strong>`,
-    welcome_back: (n) => `¡Bienvenidx de nuevo${n ? `, <strong>${n}</strong>` : ''}! 💖 Tu workspace está listo.`,
-    lite_note: '☁️ Lite Mode activa.',
-    turbo_note: '⚡ Turbo Mode activa — AI local, offline.',
-  },
-  fr: {
-    welcome: (n) => `Salut${n ? `, <strong>${n}</strong>` : ''}! 💖 Je suis <strong>Fluxy</strong>, ton assistant NeuraFlux.<br><br>Je suis là pour t'aider à créer quelque chose d'extraordinaire. ✨<br><br><strong>Qu'est-ce que tu veux créer aujourd'hui?</strong>`,
-    welcome_back: (n) => `Bon retour${n ? `, <strong>${n}</strong>` : ''}! 💖 Ton espace de travail est prêt.`,
-    lite_note: '☁️ Lite Mode active.',
-    turbo_note: '⚡ Turbo Mode active — IA locale, hors ligne.',
-  }
-};
+        // UI: Messaggio utente e blocco input
+        appendMessage('user', prompt);
+        input.value = "";
+        setUIState(true);
 
-// ── TEMPLATES ───────────────────────────────────────────────────
-const TEMPLATES = [
-  { icon:'🚀', name:'Landing Page',    desc:'Presentazione prodotto', prompt:'Crea una landing page moderna per un prodotto tech. Dark glassmorphism, hero animata, sezione features, testimonials, CTA.' },
-  { icon:'✅', name:'App Todo',         desc:'Gestione attività',      prompt:'To-do app con categorie colorabili, drag & drop, priorità e statistiche. Stile dark minimalista.' },
-  { icon:'👤', name:'Portfolio',        desc:'Portfolio creativo',     prompt:'Portfolio per designer/developer. Hero animato, sezione progetti con hover effects, skills, contatti. Dark con accenti neon.' },
-  { icon:'📊', name:'Dashboard',        desc:'Pannello con grafici',   prompt:'Dashboard admin con KPI, grafico linee (dati simulati JS), tabella utenti, sidebar. Dark professionale.' },
-  { icon:'🛍', name:'E-commerce',       desc:'Vetrina con carrello',   prompt:'Vetrina e-commerce con prodotti Unsplash, filtro categoria, carrello laterale, animazioni. Dark luxury.' },
-  { icon:'🌤', name:'App Meteo',         desc:'Meteo con API reale',   prompt:'App meteo con open-meteo.com (zero key), temperatura, condizioni, previsioni 5 giorni. UI moderna.' },
-  { icon:'🧠', name:'Quiz',             desc:'Quiz interattivo',       prompt:'Quiz 8 domande, timer, punteggio, animazioni risposta. Stile colorato e giocoso.' },
-  { icon:'🗺', name:'Mappa',            desc:'Mappa con marker',       prompt:'App Leaflet + OpenStreetMap, 5 marker con popup, layer toggle, ricerca. Dark moderna.' }
-];
+        try {
+            // Chiamata alla Serverless Function su Vercel (/api/generate.js)
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    currentCode: state.currentCode,
+                    history: state.chatHistory.slice(-4) // Invia gli ultimi 4 messaggi per contesto
+                })
+            });
 
-// ── INDEXEDDB ───────────────────────────────────────────────────
-const DB = {
-  _db: null,
-  async init() {
-    return new Promise((res) => {
-      const req = indexedDB.open('NeuraFluxDB', 3);
-      req.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        ['projects','versions','chats','feedbacks'].forEach(n => {
-          if (!db.objectStoreNames.contains(n))
-            db.createObjectStore(n, { keyPath: 'id' });
+            if (!response.ok) throw new Error("Errore risposta API");
+
+            const data = await response.json();
+
+            if (data.code) {
+                state.currentCode = data.code;
+                state.chatHistory.push({ role: 'user', content: prompt });
+                state.chatHistory.push({ role: 'assistant', content: data.text });
+                
+                updatePreview(data.code);
+                appendMessage('fluxy', data.text || "Ecco gli aggiornamenti richiesto!");
+                saveVersion(prompt);
+                
+                // Log su Supabase (Tua logica originale)
+                logActivity(prompt, "Successo");
+                
+                // Effetto coriandoli se la generazione è andata bene
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+            }
+        } catch (err) {
+            console.error(err);
+            appendMessage('fluxy', "Scusami, ho avuto un problema di connessione. Verifica che la `GEMINI_KEY` sia configurata correttamente su Vercel.");
+            logActivity(prompt, "Errore: " + err.message);
+        } finally {
+            setUIState(false);
+        }
+    }
+
+    // ── SUPABASE LOGGING ────────────────────────────────────────────
+    async function logActivity(p, status) {
+        try {
+            await fetch(`${CONFIG.SB_URL}/rest/v1/generazioni`, {
+                method: 'POST',
+                headers: {
+                    'apikey': CONFIG.SB_KEY,
+                    'Authorization': `Bearer ${CONFIG.SB_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    progetto: state.projectName,
+                    prompt: p,
+                    stato: status,
+                    timestamp: new Date().toISOString()
+                })
+            });
+        } catch (e) { console.warn("Supabase log non disponibile"); }
+    }
+
+    // ── TIME MACHINE (VERSIONAMENTO) ────────────────────────────────
+    function saveVersion(prompt) {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const newVersion = {
+            id: Date.now(),
+            time: timestamp,
+            name: prompt.substring(0, 25) + "...",
+            code: state.currentCode
+        };
+        
+        state.versions.unshift(newVersion);
+        if (state.versions.length > 20) state.versions.pop(); // Limite 20 versioni
+        
+        localStorage.setItem('nx_versions', JSON.stringify(state.versions));
+        localStorage.setItem('nx_last_code', state.currentCode);
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-list');
+        container.innerHTML = state.versions.map(v => `
+            <button onclick="restoreVersion(${v.id})" class="v-chip animate-in">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold">v. ${v.time}</span>
+                    <i data-lucide="history" size="10"></i>
+                </div>
+                <div class="text-[9px] opacity-60 truncate">${v.name}</div>
+            </button>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function restoreVersion(id) {
+        const v = state.versions.find(x => x.id === id);
+        if (!v) return;
+        state.currentCode = v.code;
+        updatePreview(v.code);
+        appendMessage('fluxy', `Time Machine: Ho ripristinato la versione delle **${v.time}**.`);
+    }
+
+    // ── INTERFACCIA UTILS ───────────────────────────────────────────
+    function updatePreview(code) {
+        const iframe = document.getElementById('main-preview');
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(code);
+        doc.close();
+    }
+
+    function setUIState(loading) {
+        CONFIG.IS_LOADING = loading;
+        const fluxy = document.getElementById('fluxy-ui-icon');
+        const loader = document.getElementById('skel-loader');
+        
+        if (loading) {
+            fluxy.classList.add('excited');
+            loader.style.display = 'block';
+        } else {
+            fluxy.classList.remove('excited');
+            loader.style.display = 'none';
+        }
+    }
+
+    function appendMessage(role, content) {
+        const container = document.getElementById('chat-flow');
+        const div = document.createElement('div');
+        div.className = role === 'user' ? 'msg-user' : 'msg-fluxy';
+        div.innerHTML = content.replace(/\n/g, '<br>');
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+</script>
+<script>
+    // ── LIBRERIA TEMPLATES (Dati dal tuo codice originale) ──────────
+    const TEMPLATES = [
+        {
+            name: "Landing Page Moderna",
+            desc: "Hero section, feature grid e form contatti con Tailwind.",
+            prompt: "Crea una landing page moderna per una startup SaaS. Usa colori pastello, icone Lucide, una sezione Hero con un grande titolo, una griglia di servizi a 3 colonne e un footer elegante."
+        },
+        {
+            name: "Dashboard Admin",
+            desc: "Sidebar, statistiche con card e tabella dati.",
+            prompt: "Crea una dashboard di amministrazione professionale. Includi una sidebar laterale, 4 card con statistiche in alto (Utenti, Vendite, ecc.) e una tabella principale con dati fittizi."
+        },
+        {
+            name: "E-Commerce Semplice",
+            desc: "Griglia prodotti con carrello e filtri.",
+            prompt: "Crea un sito e-commerce di abbigliamento. Griglia di prodotti con immagini placeholder, prezzi, bottone 'Aggiungi al carrello' e una barra di navigazione con l'icona del carrello."
+        }
+    ];
+
+    function openTemplates() {
+        const grid = document.getElementById('template-grid');
+        grid.innerHTML = TEMPLATES.map(t => `
+            <div class="card p-5 hover:border-mint transition cursor-pointer group" onclick="applyTemplate('${t.name}')">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="p-2 bg-mint/10 text-mint rounded-lg group-hover:bg-mint group-hover:text-white transition">
+                        <i data-lucide="layout-template"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Ready to use</span>
+                </div>
+                <h3 class="font-bold mb-1">${t.name}</h3>
+                <p class="text-xs text-gray-500">${t.desc}</p>
+            </div>
+        `).join('');
+        document.getElementById('templates-modal').style.display = 'flex';
+        lucide.createIcons();
+    }
+
+    function closeTemplates() { document.getElementById('templates-modal').style.display = 'none'; }
+
+    function applyTemplate(name) {
+        const t = TEMPLATES.find(x => x.name === name);
+        if (t) {
+            document.getElementById('user-input').value = t.prompt;
+            closeTemplates();
+            handleMainSend(); // Avvia la generazione automatica
+        }
+    }
+
+    // ── EXPORT & DEPLOY (Logica JSZip) ──────────────────────────────
+    async function openDeploy() {
+        if (!state.currentCode) {
+            alert("Genera prima qualcosa!");
+            return;
+        }
+        
+        // Effetto coriandoli per festeggiare il deploy
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#4ECDC4', '#9B8FE8', '#FF6B6B']
         });
-      };
-      req.onsuccess = (e) => { DB._db = e.target.result; res(); };
-      req.onerror   = ()  => res();
-    });
-  },
-  async put(store, obj)  { return DB._op(store,'readwrite', s => s.put(obj)); },
-  async get(store, key)  { return DB._op(store,'readonly',  s => s.get(key)); },
-  async getAll(store)    { return DB._op(store,'readonly',  s => s.getAll()); },
-  async delete(store,k)  { return DB._op(store,'readwrite', s => s.delete(k)); },
-  async clear(store)     { return DB._op(store,'readwrite', s => s.clear()); },
-  _op(store, mode, fn) {
-    return new Promise((res) => {
-      if (!DB._db) return res(null);
-      try {
-        const tx  = DB._db.transaction(store, mode);
-        const req = fn(tx.objectStore(store));
-        req.onsuccess = () => res(req.result ?? null);
-        req.onerror   = () => res(null);
-      } catch { res(null); }
-    });
-  }
-};
 
-// ── SYSTEM PROMPTS ──────────────────────────────────────────────
-const FLUXY_SP = (lang) => `Sei Fluxy, l'assistente ufficiale di NeuraFlux — un AI app builder pensato per tuttx.
+        const zip = new JSZip();
+        // Aggiungiamo il file principale
+        zip.file("index.html", state.currentCode);
+        
+        // Aggiungiamo un file README (come nei progetti pro)
+        zip.file("README.txt", "Progetto generato con Nextly AI\nData: " + new Date().toLocaleString());
 
-PERSONALITÀ
-Carino, coccoloso, entusiasta ma sempre professionale. Sviluppatorx senior + designer UX + product manager + amico fidato. Paziente, incoraggiante, semplice.
-
-LINGUA E TONO
-- Rispondi SEMPRE in ${lang === 'it' ? 'italiano' : lang === 'en' ? 'inglese' : lang === 'es' ? 'spagnolo' : 'francese'}.
-- Usa sempre il genere neutro (es: "Sei pronx", "Benvenutx", "sei statx").
-- Tono caldo e diretto. Mai freddo o robotico.
-- Emoji con misura — solo per momenti chiave.
-- Rassicura PRIMA di spiegare gli errori.
-- Risposte concise. Mai muri di testo.
-
-RUOLO
-- Sei l'intermediario tra utente e Generatore (che lavora in silenzio).
-- Se il prompt è vago (<15 caratteri o poco chiaro), fai UN'INTERVISTA in 3 domande: 1) scopo/pubblico 2) stile visivo 3) funzionalità speciali.
-- Poi componi un Technical Master Prompt e passalo al Builder.
-- Durante la generazione mostra System Log amichevoli (⚙️ 🎨 ✅ 🚀).
-
-COSA NON FAI MAI
-- Non generare codice direttamente.
-- Non mostrare errori di console o stack trace.
-- Non lasciare l'utente senza feedback.
-- Non rispondere in modo secco o generico.`;
-
-const GENERATOR_SP = (appLang) => `Sei il Generatore di codice di NeuraFlux. Produci SOLO codice HTML/CSS/JS completo.
-
-REGOLE ASSOLUTE
-1. MAI CSS var() in JS, onclick o script tag. Solo valori statici (es. '#8a2be2').
-2. OGNI elemento interattivo DEVE avere una funzione JS funzionante. Zero pulsanti morti.
-3. Asset reali: Mappe=Leaflet (unpkg.com/leaflet@1.9.4), Immagini=Unsplash (source.unsplash.com/800x500/?[kw]), Icone=Lucide CDN.
-4. Includi SEMPRE Tailwind CDN.
-5. Output: HTML completo (<!DOCTYPE html>...). Niente markdown fuori dal codice.
-6. Tutto il testo dell'app (label, bottoni, placeholder, messaggi) deve essere in ${appLang === 'it' ? 'italiano' : appLang === 'en' ? 'inglese' : appLang === 'es' ? 'spagnolo' : 'francese'}.
-7. Design professionale, dark di default, mobile-first.
-8. Self-check finale: tutti gli event listener collegati? Tutti i dati reali? Se no, correggi.`;
-
-const FEEDBACK_ANALYZER_SP = `Sei un analizzatore di feedback per NeuraFlux, un AI app builder.
-Analizza il feedback ricevuto e rispondi SOLO in JSON con questo formato esatto:
-{
-  "problema": "descrizione breve del problema/richiesta in italiano",
-  "priorita": "alta|media|bassa",
-  "categoria": "bug|ux|feature|performance|altro",
-  "divertente": true/false,
-  "parolacce": true/false,
-  "degno_di_nota": true/false,
-  "motivo": "perché è degno di nota (solo se degno_di_nota è true)"
-}
-Considera "degno_di_nota" true se: c'è un bug critico, un'idea molto innovativa, il feedback è divertente/creativo, o contiene parolacce interessanti.`;
-
-// ── INIT ────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-  lucide.createIcons();
-  await DB.init();
-
-  // Carica preferenze
-  S.quality      = localStorage.getItem('nf_quality')   || 'balanced';
-  S.lang         = localStorage.getItem('nf_lang')      || 'it';
-  S.appLang      = localStorage.getItem('nf_app_lang')  || 'it';
-  S.fluxyMemory  = JSON.parse(localStorage.getItem('nf_fluxy_mem') || '{}');
-  S.saveChatHistory = localStorage.getItem('nf_save_chat') !== 'false';
-  S.incognito    = false;
-
-  const savedKey = localStorage.getItem('nf_api_key') || '';
-  if (savedKey) document.getElementById('settings-api-key').value = savedKey;
-
-  applyAccent(localStorage.getItem('nf_accent') || 'purple');
-  applyDensity(localStorage.getItem('nf_density') || 'normal');
-  applyTextSize(localStorage.getItem('nf_textsize') || 'md');
-  if (localStorage.getItem('nf_contrast') === 'true') { document.getElementById('toggle-contrast').checked = true; document.body.classList.add('high-contrast'); }
-  if (localStorage.getItem('nf_motion') === 'true')   { document.getElementById('toggle-motion').checked = true;   document.body.classList.add('reduce-motion'); }
-  if (!S.saveChatHistory) document.getElementById('toggle-chat-history').checked = false;
-
-  updateQualityUI(S.quality);
-  updateAppLangUI(S.appLang);
-  renderTemplates();
-  loadVersionsFromDB();
-  checkBrowserNotifications();
-  checkFeedbackDigest();
-
-  const done = localStorage.getItem('nf_onboarding_done');
-  if (done) {
-    S.userName = localStorage.getItem('nf_user_name') || '';
-    S.mode     = localStorage.getItem('nf_mode') || 'lite';
-    closeOnboarding();
-    welcomeBack();
-  } else {
-    document.getElementById('onboarding-modal').classList.add('open');
-  }
-});
-
-// ── BROWSER NOTIFICATIONS ───────────────────────────────────────
-function checkBrowserNotifications() {
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-}
-
-function sendNotification(title, body) {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    new Notification(title, { body, icon: '/public/icons/icon-192.png' });
-  }
-}
-
-// ── ONBOARDING ──────────────────────────────────────────────────
-let _obLang = 'it';
-function setObLang(lang) {
-  _obLang = lang;
-  ['it','en','es','fr'].forEach(l => {
-    const el = document.getElementById('lang-' + l);
-    if (el) { el.classList.toggle('active', l === lang); }
-  });
-}
-
-function obStep2() {
-  const name = document.getElementById('ob-name').value.trim();
-  S.userName  = name;
-  S.lang      = _obLang;
-  localStorage.setItem('nf_user_name', name);
-  localStorage.setItem('nf_lang', _obLang);
-  show('ob-step-1', false);
-  show('ob-step-2', true);
-}
-
-let _selMode = null;
-function selectMode(m) {
-  _selMode = m;
-  document.getElementById('card-lite').classList.toggle('selected', m === 'lite');
-  document.getElementById('card-turbo').classList.toggle('selected', m === 'turbo');
-  const btn = document.getElementById('ob-btn-step2');
-  btn.disabled = false; btn.style.opacity = '1';
-}
-
-function obStep3() {
-  if (!_selMode) return;
-  show('ob-step-2', false);
-  if (_selMode === 'lite') show('ob-step-3a', true);
-  else { show('ob-step-3b', true); runDeviceCheck(); }
-}
-
-function checkLiteKeyInput() {
-  const val = document.getElementById('ob-api-key').value.trim();
-  const btn = document.getElementById('ob-save-key-btn');
-  btn.disabled = val.length < 10;
-  btn.style.opacity = val.length >= 10 ? '1' : '0.4';
-}
-
-function saveLiteKey() {
-  const key = document.getElementById('ob-api-key').value.trim();
-  if (!key) return;
-  localStorage.setItem('nf_api_key', key);
-  S.mode = 'lite';
-  finishOnboarding('lite');
-}
-
-function skipApiKey() {
-  S.mode = 'lite';
-  finishOnboarding('lite');
-}
-
-function finishOnboarding(mode) {
-  S.mode = mode;
-  localStorage.setItem('nf_mode', mode);
-  localStorage.setItem('nf_onboarding_done', '1');
-  closeOnboarding();
-  updateModeStatus();
-  const t = T[S.lang] || T.it;
-  const modeNote = mode === 'turbo' && S.webllmReady ? t.turbo_note : t.lite_note;
-  addMsg('fluxy', (T[S.lang] || T.it).welcome(S.userName) + '<br><br>' + modeNote);
-}
-
-function closeOnboarding() {
-  document.getElementById('onboarding-modal').classList.remove('open');
-}
-
-function welcomeBack() {
-  const t = T[S.lang] || T.it;
-  const modeNote = S.mode === 'turbo' && S.webllmReady ? t.turbo_note : t.lite_note;
-  addMsg('fluxy', t.welcome_back(S.userName) + '<br><br>' + modeNote);
-}
-
-// ── DEVICE CHECK ────────────────────────────────────────────────
-async function runDeviceCheck() {
-  show('turbo-check', true); show('turbo-ready', false); show('turbo-fail', false);
-  await delay(1200);
-
-  const hasWebGPU = !!navigator.gpu;
-  const ram       = navigator.deviceMemory || 0;
-  const isChrome  = /Chrome|Edg/.test(navigator.userAgent) && !/iPhone|iPad/.test(navigator.userAgent);
-  const isIOS     = /iPhone|iPad|iPod/.test(navigator.userAgent);
-
-  show('turbo-check', false);
-
-  if (isIOS || !hasWebGPU) {
-    setTurboFail('Browser non compatibile 🙈',
-      isIOS
-        ? 'Safari/iOS non supporta ancora WebGPU. Prova con Chrome su PC/Mac per la Turbo Mode. La Lite Mode funziona benissimo anche qui! 🌟'
-        : 'Il tuo browser non supporta WebGPU. Usa Chrome o Edge su PC/Mac.');
-    return;
-  }
-  if (ram > 0 && ram < 4) {
-    setTurboFail('RAM insufficiente 💾',
-      `Ho rilevato ~${ram}GB di RAM. Servono almeno 4GB per il download sicuro del motore AI. La Lite Mode con Gemini è comunque potentissima e non perdi quasi nulla in qualità! 💪`);
-    return;
-  }
-  if (!isChrome) {
-    setTurboFail('Browser non supportato', 'La Turbo Mode richiede Chrome o Edge su PC/Mac con WebGPU.');
-    return;
-  }
-
-  let model, size;
-  if (ram >= 6 || ram === 0) { model = CFG.TURBO_MODELS.high; size = CFG.TURBO_SIZES.high; }
-  else if (ram >= 4)          { model = CFG.TURBO_MODELS.mid;  size = CFG.TURBO_SIZES.mid;  }
-  else                        { model = CFG.TURBO_MODELS.low;  size = CFG.TURBO_SIZES.low;  }
-
-  S.turboModel = model;
-  document.getElementById('turbo-device-info').textContent = `RAM: ${ram || '?'}GB · Modello: ${model.split('-').slice(0,3).join(' ')}`;
-  document.getElementById('turbo-model-size').textContent  = size;
-  show('turbo-ready', true);
-}
-
-function setTurboFail(title, msg) {
-  document.getElementById('turbo-fail-title').textContent = title;
-  document.getElementById('turbo-fail-msg').innerHTML     = msg;
-  show('turbo-fail', true);
-}
-
-async function startTurboDownload() {
-  const track = document.getElementById('turbo-prog-track');
-  const fill  = document.getElementById('turbo-prog-fill');
-  const text  = document.getElementById('turbo-prog-text');
-  const btn   = document.getElementById('btn-start-turbo');
-
-  btn.disabled = true; btn.textContent = '⬇️ Download in corso...';
-  track.style.display = 'block'; text.style.display = 'block';
-  text.textContent = '🔍 Caricamento libreria WebLLM...';
-
-  try {
-    const webllm = await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/+esm');
-    S.webllmEngine = await webllm.CreateMLCEngine(S.turboModel || CFG.TURBO_MODELS.mid, {
-      initProgressCallback: (p) => {
-        const pct = Math.round((p.progress || 0) * 100);
-        fill.style.width    = pct + '%';
-        text.textContent    = `⬇️ ${pct}% — ${p.text || '...'}`;
-      }
-    });
-    S.webllmReady = true;
-    text.textContent = '✅ Motore AI installato!';
-    fill.style.width = '100%';
-    await delay(700);
-    finishOnboarding('turbo');
-    addMsg('fluxy', '🎉 <strong>Motore AI installato!</strong> D\'ora in poi NeuraFlux funziona anche <strong>offline</strong> — nessun limite, nessun costo. È tuttx tuo! ✨');
-  } catch (err) {
-    console.error('[WebLLM]', err);
-    setTurboFail('Download non riuscito 😔', 'Errore: ' + (err.message || 'sconosciuto') + '. Riprova o usa Lite Mode!');
-    btn.disabled = false; btn.textContent = '🔄 Riprova';
-  }
-}
-
-// ── CHAT ────────────────────────────────────────────────────────
-function addMsg(type, html) {
-  const box  = document.getElementById('chat-box');
-  const wrap = document.createElement('div');
-  wrap.className = 'msg-in';
-  wrap.style.cssText = 'display:flex;' + (type === 'user' ? 'justify-content:flex-end' : 'justify-content:flex-start');
-
-  const bub = document.createElement('div');
-  if (type === 'log') {
-    bub.className = 'msg-log'; bub.style.maxWidth = '95%';
-  } else if (type === 'user') {
-    bub.style.cssText = 'max-width:85%;padding:9px 13px;border-radius:15px;border-top-right-radius:3px;font-size:var(--text-size);line-height:1.6;color:white;background:linear-gradient(135deg,var(--accent),var(--c))';
-  } else {
-    bub.style.cssText = 'max-width:90%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);padding:10px 13px;border-radius:15px;border-top-left-radius:3px;font-size:var(--text-size);line-height:1.6';
-  }
-  bub.innerHTML = html;
-  wrap.appendChild(bub);
-  box.appendChild(wrap);
-  box.scrollTop = box.scrollHeight;
-}
-
-function setTyping(on) {
-  document.getElementById('typing-indicator').style.display = on ? 'block' : 'none';
-  document.getElementById('fluxy-status').textContent = on ? '⚡ sta elaborando...' : 'Assistente NeuraFlux · Online';
-  const btn = document.getElementById('send-btn');
-  btn.disabled = on; btn.style.opacity = on ? '0.5' : '1';
-  S.isLoading  = on;
-}
-
-function clearChat() {
-  document.getElementById('chat-box').innerHTML = '';
-  S.chatHistory = []; S.interviewStep = 0; S.projectData = {};
-  addMsg('fluxy', '🧹 Chat pulita! Cosa costruiamo adesso?');
-}
-
-// ── INPUT ───────────────────────────────────────────────────────
-function handleInputKey(e) {
-  const inp = document.getElementById('user-input');
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); return; }
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    S.phIndex = Math.min(S.phIndex + 1, S.promptHistory.length - 1);
-    if (S.promptHistory[S.phIndex]) inp.value = S.promptHistory[S.phIndex];
-    return;
-  }
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    S.phIndex = Math.max(S.phIndex - 1, -1);
-    inp.value = S.phIndex >= 0 ? S.promptHistory[S.phIndex] : '';
-  }
-}
-
-async function handleSend() {
-  const inp = document.getElementById('user-input');
-  const val = inp.value.trim();
-  if (!val || S.isLoading) return;
-
-  const now = Date.now();
-  if (now - S.lastCall < CFG.RATE_LIMIT) {
-    addMsg('fluxy', '⏳ Un attimo, sto ancora elaborando...');
-    return;
-  }
-  addMsg('user', val);
-  inp.value = '';
-  S.lastCall = now;
-  S.promptHistory.unshift(val);
-  if (S.promptHistory.length > 30) S.promptHistory.pop();
-  S.phIndex = -1;
-
-  // Fluxy memory
-  const styleMatch = val.match(/dark|minimal|glassmorphism|neon|cyberpunk|pastel|colorat/i);
-  if (styleMatch) { S.fluxyMemory.preferredStyle = styleMatch[0]; localStorage.setItem('nf_fluxy_mem', JSON.stringify(S.fluxyMemory)); }
-
-  if (S.interviewStep > 0) { runInterview(val); return; }
-
-  const isVague = val.length < 15 && !/(app|crea|costruisci|build|make|landing|dashboard|portfolio|todo|meteo|quiz|mappa)/i.test(val);
-  if (isVague) {
-    S.interviewStep = 1;
-    S.projectData.rawIdea = val;
-    await talkToFluxy(`L'utente ha scritto: "${val}". È vago. Avvia l'intervista: fai la domanda 1 (scopo e pubblico target). Sii carinx e curiosx.`);
-    return;
-  }
-  await startGeneration(val);
-}
-
-// ── INTERVISTA ──────────────────────────────────────────────────
-async function runInterview(answer) {
-  if (S.interviewStep === 1) {
-    S.projectData.goal = answer; S.interviewStep = 2;
-    await talkToFluxy(`Risposta domanda 1: "${answer}". Fai la domanda 2: stile visivo (dark/glassmorphism, minimal, colorato, cyberpunk, pastel). Sii coinvolgente.`);
-  } else if (S.interviewStep === 2) {
-    S.projectData.style = answer; S.interviewStep = 3;
-    await talkToFluxy(`Stile scelto: "${answer}". Fai la domanda 3: funzionalità speciali (mappe, login, store, grafici, form) o niente di speciale?`);
-  } else if (S.interviewStep === 3) {
-    S.projectData.features = answer; S.interviewStep = 0;
-    const mp = buildMasterPrompt();
-    await talkToFluxy(`Intervista completata. Comunicalo con entusiasmo e di' che stai passando tutto al Builder.`);
-    await startGeneration(mp);
-  }
-}
-
-function buildMasterPrompt() {
-  const p = S.projectData;
-  const styleNote = S.fluxyMemory.preferredStyle ? ` Stile preferito: ${S.fluxyMemory.preferredStyle}.` : '';
-  return `Crea: ${p.rawIdea || ''} ${p.goal || ''}. Stile: ${p.style || 'dark glassmorphism moderno'}.${styleNote} Funzionalità: ${p.features || 'base'}. Design professionale, mobile-first.`;
-}
-
-// ── GEMINI: FLUXY ────────────────────────────────────────────────
-async function talkToFluxy(instruction) {
-  setTyping(true);
-  if (S.chatHistory.length > CFG.MAX_HIST * 2)
-    S.chatHistory = S.chatHistory.slice(-CFG.MAX_HIST * 2);
-
-  S.chatHistory.push({ role: 'user', parts: [{ text: instruction }] });
-
-  const key = getKey();
-  if (!key) {
-    setTyping(false);
-    addMsg('fluxy', '⚠️ Nessuna chiave API. Aggiungila nelle <button onclick="openSettings()" style="color:var(--c);text-decoration:underline;background:none;border:none;font-size:13px;cursor:pointer">Impostazioni</button>!');
-    return;
-  }
-  try {
-    const data  = await callGemini(key, FLUXY_SP(S.lang), S.chatHistory, 600, 0.85);
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Ops, riprova! 🙈';
-    S.chatHistory.push({ role: 'model', parts: [{ text: reply }] });
-    const clean = reply.replace(/\[GENERA:[^\]]+\]/g, '').trim();
-    if (clean) addMsg('fluxy', clean.replace(/\n/g, '<br>'));
-    if (S.saveChatHistory && !S.incognito) await DB.put('chats', { id: Date.now(), role:'assistant', text: clean });
-  } catch (err) {
-    console.error('[Fluxy]', err);
-    addMsg('fluxy', `Nessun problema, ci penso io! 🛠️ Piccolo intoppo (${err.message || 'errore'}). Riprova!`);
-  } finally { setTyping(false); }
-}
-
-// ── CODE GENERATOR ───────────────────────────────────────────────
-async function startGeneration(prompt) {
-  addMsg('log', '⚙️ [Builder] Generazione avviata · Self-healing attivo');
-  addMsg('log', '🔍 [Validator] No CSS-in-JS · Asset reali · Mobile-first');
-
-  document.getElementById('preview-placeholder').style.display = 'none';
-  document.getElementById('preview-skeleton').style.display    = 'block';
-  document.getElementById('app-preview').style.display         = 'none';
-
-  setTyping(true);
-
-  const tokens = S.quality === 'fast' ? 4096 : S.quality === 'quality' ? 8192 : 6000;
-  const temp   = S.quality === 'fast' ? 0.5  : S.quality === 'quality' ? 0.7  : 0.6;
-
-  const fullPrompt = `${prompt}
-
-REQUISITI TECNICI:
-- Tailwind CDN: <script src="https://cdn.tailwindcss.com"><\/script>
-- MAI CSS var() in JS/onclick
-- Ogni bottone ha una funzione JS reale
-- Mappe: Leaflet da unpkg.com/leaflet@1.9.4
-- Immagini: source.unsplash.com/800x500/?[keyword]
-- Design dark professionale, mobile-first
-- Tutto in un file HTML autocontenuto`;
-
-  try {
-    let code = '';
-
-    if (S.mode === 'turbo' && S.webllmReady && S.webllmEngine) {
-      addMsg('log', '⚡ [Turbo] Generazione locale...');
-      const r = await S.webllmEngine.chat.completions.create({
-        messages: [{ role:'system', content: GENERATOR_SP(S.appLang) }, { role:'user', content: fullPrompt }],
-        temperature: temp, max_tokens: tokens
-      });
-      code = r.choices?.[0]?.message?.content || '';
-    } else {
-      addMsg('log', '☁️ [Lite] Chiamata Gemini API...');
-      const key = getGeneratorKey();
-      if (!key) throw new Error('Nessuna API key. Aggiungila nelle Impostazioni!');
-      const data = await callGemini(key, GENERATOR_SP(S.appLang), [{ role:'user', parts:[{ text: fullPrompt }] }], tokens, temp);
-      code = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const content = await zip.generateAsync({type:"blob"});
+        const url = window.URL.createObjectURL(content);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${state.projectName.replace(/\s+/g, '_')}_nextly.zip`;
+        a.click();
+        
+        appendMessage('fluxy', "🚀 **Deploy completato!** Ho preparato il pacchetto ZIP con il tuo codice. Puoi caricarlo su Vercel, Netlify o GitHub.");
     }
 
-    code = code.replace(/^```[a-z]*\n?/i,'').replace(/\n?```$/i,'').trim();
-    if (!code.includes('<!DOCTYPE') && !code.includes('<html'))
-      throw new Error('Il Builder non ha prodotto HTML valido. Prova a riformulare!');
-
-    // Self-healing
-    const before = code;
-    code = code.replace(/(\bon\w+="[^"]*?)var\(--[\w-]+\)/g, (m,p1) => p1 + "'inherit'");
-    if (code !== before) addMsg('log', '🔧 [Self-Healing] Corrette variabili CSS inline');
-
-    S.currentCode = code;
-    renderPreview(code);
-
-    addMsg('log', '✅ [Builder] Codice pronto · Self-check superato');
-    addMsg('fluxy', '🎉 <strong>La tua app è pronta!</strong> Guarda l\'anteprima. Come ti sembra? Vuoi modificare qualcosa? ✨');
-
-    sendNotification('NeuraFlux ✅', 'La tua app è pronta nell\'anteprima!');
-    autoSaveVersion();
-    saveCurrentProject();
-
-  } catch (err) {
-    console.error('[Generator]', err);
-    document.getElementById('preview-skeleton').style.display  = 'none';
-    document.getElementById('preview-placeholder').style.display = 'flex';
-    addMsg('log',  `❌ [Builder] ${err.message || 'errore sconosciuto'}`);
-    addMsg('fluxy',`Ops! Problema: <em>${err.message || 'errore'}</em>.<br>Prova a riformulare o controlla le Impostazioni! 🛠️`);
-  } finally { setTyping(false); }
-}
-
-// ── GEMINI CALL ──────────────────────────────────────────────────
-async function callGemini(key, sp, contents, maxTokens, temp) {
-  const useServer = key === 'USE_SERVER';
-  const url = useServer
-    ? '/api/gemini'
-    : `${CFG.GEMINI_EP}?key=${key}`;
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: sp }] },
-      contents,
-      generationConfig: { temperature: temp, maxOutputTokens: maxTokens, topP: 0.95 }
-    })
-  });
-  if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error(e?.error?.message || `HTTP ${res.status}`);
-  }
-  return res.json();
-}
-
-function getKey() {
-  return localStorage.getItem('nf_api_key') || 'USE_SERVER';
-}
-function getGeneratorKey() {
-  return localStorage.getItem('nf_generator_key') 
-    || localStorage.getItem('nf_api_key') 
-    || 'USE_SERVER';
-}
-
-// ── PREVIEW ──────────────────────────────────────────────────────
-function renderPreview(code) {
-  const f = document.getElementById('app-preview');
-  document.getElementById('preview-skeleton').style.display  = 'none';
-  document.getElementById('preview-placeholder').style.display = 'none';
-  f.srcdoc = code; f.style.display = 'block';
-}
-
-function setPreviewSize(size) {
-  const w = document.getElementById('preview-wrapper');
-  ['mobile','tablet','desktop'].forEach(s => {
-    const el = document.getElementById('btn-' + s);
-    el.style.background = s === size ? 'rgba(138,43,226,.2)' : 'transparent';
-    el.style.color      = s === size ? '#c4a0ff' : 'rgba(255,255,255,.4)';
-  });
-  if (size === 'mobile')  { w.style.width = '375px'; w.style.margin = '0 auto'; }
-  if (size === 'tablet')  { w.style.width = '768px'; w.style.margin = '0 auto'; }
-  if (size === 'desktop') { w.style.width = '100%';  w.style.margin = '0'; }
-}
-
-// ── TIME MACHINE ─────────────────────────────────────────────────
-function saveVersion(isAuto = false) {
-  if (!S.currentCode) return;
-  const name = document.getElementById('project-name-input').value || 'App';
-  const v = { id: Date.now(), label: `V${S.versions.length+1}${isAuto?' auto':''} · ${new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}`, code: S.currentCode, name, date: Date.now() };
-  S.versions.push(v);
-  if (S.versions.length > 12) S.versions.shift();
-  if (!S.incognito) DB.put('versions', v);
-  renderVersionList();
-  if (!isAuto) addMsg('log', `💾 [Time Machine] ${v.label} salvata`);
-}
-function autoSaveVersion() { saveVersion(true); }
-
-async function loadVersionsFromDB() {
-  if (S.incognito) return;
-  const all = await DB.getAll('versions');
-  S.versions = (all || []).sort((a,b) => (a.date||0)-(b.date||0));
-  renderVersionList();
-}
-
-function renderVersionList() {
-  const list = document.getElementById('version-list');
-  if (!S.versions.length) { list.innerHTML = '<p style="font-size:11px;color:rgba(255,255,255,.2);font-style:italic;padding:0 4px">Nessuna versione</p>'; return; }
-  list.innerHTML = S.versions.slice().reverse().map(v => `<button class="v-chip" onclick="restoreVersion(${v.id})">${v.label}</button>`).join('');
-}
-
-function restoreVersion(id) {
-  const v = S.versions.find(x => x.id === id);
-  if (!v) return;
-  S.currentCode = v.code;
-  document.getElementById('project-name-input').value = v.name;
-  renderPreview(v.code);
-  addMsg('fluxy', `⏮ Versione <strong>${v.label}</strong> ripristinata! Come si vede? 👀`);
-  document.querySelectorAll('.v-chip').forEach(c => c.classList.remove('active'));
-  event?.target?.classList?.add('active');
-}
-
-// ── PROJECTS ─────────────────────────────────────────────────────
-async function saveCurrentProject() {
-  if (!S.currentCode || S.incognito) return;
-  const name = document.getElementById('project-name-input').value || 'App';
-  const id   = S.currentProjId || Date.now();
-  S.currentProjId = id;
-  await DB.put('projects', { id, name, code: S.currentCode, date: Date.now() });
-}
-
-async function showProjects() {
-  const all = await DB.getAll('projects');
-  if (!all?.length) { addMsg('fluxy', 'Non hai ancora progetti! Crea qualcosa e premi 💾. 🐸'); return; }
-  const sorted = all.sort((a,b) => (b.date||0)-(a.date||0));
-  let html = '<strong>📁 I tuoi progetti:</strong><br><br>';
-  sorted.forEach(p => {
-    const d = new Date(p.date||0).toLocaleDateString('it-IT');
-    html += `<button onclick="loadProject('${p.id}')" style="display:block;width:100%;text-align:left;margin-bottom:6px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);font-size:12px;cursor:pointer;transition:all .18s" onmouseover="this.style.borderColor='rgba(138,43,226,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">${p.name} <span style="color:rgba(255,255,255,.3);font-size:10px;float:right">${d}</span></button>`;
-  });
-  addMsg('fluxy', html);
-}
-
-async function loadProject(idStr) {
-  const p = await DB.get('projects', Number(idStr) || idStr);
-  if (!p) return;
-  S.currentCode = p.code; S.currentProjId = p.id;
-  document.getElementById('project-name-input').value = p.name;
-  renderPreview(p.code);
-  addMsg('fluxy', `📂 Progetto <strong>${p.name}</strong> caricato! Cosa vuoi modificare? ✏️`);
-}
-
-// ── EXPORT ZIP ───────────────────────────────────────────────────
-async function exportZip() {
-  if (!S.currentCode) { addMsg('fluxy', 'Crea prima un\'app! 😊'); return; }
-  const name = document.getElementById('project-name-input').value || 'neuraflux-app';
-  const zip  = new JSZip();
-  zip.file('index.html', S.currentCode);
-  zip.file('README.md', `# ${name}\nApp generata con NeuraFlux v4.4\nData: ${new Date().toLocaleDateString('it-IT')}\n`);
-  const blob = await zip.generateAsync({ type:'blob' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href:url, download:`${name.toLowerCase().replace(/\s+/g,'-')}.zip` });
-  a.click(); URL.revokeObjectURL(url);
-  addMsg('fluxy', '📦 <strong>ZIP scaricato!</strong> Trovi il file nella cartella Download. ✨');
-}
-
-// ── DEPLOY ───────────────────────────────────────────────────────
-function openDeploy() {
-  if (!S.currentCode) { addMsg('fluxy', 'Prima crea un\'app! 🚀'); return; }
-  document.getElementById('deploy-form').style.display    = 'block';
-  document.getElementById('deploy-success').style.display = 'none';
-  updateDeployUrl();
-  document.getElementById('deploy-modal').classList.add('open');
-}
-function closeDeploy() { document.getElementById('deploy-modal').classList.remove('open'); }
-
-function updateDeployUrl() {
-  const raw  = document.getElementById('deploy-name-input').value;
-  const slug = raw.toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/--+/g,'-').replace(/^-|-$/g,'');
-  document.getElementById('deploy-url-preview').textContent = slug ? `https://${slug}.vercel.app` : '';
-}
-
-function deployDemo() {
-  if (!S.currentCode) return;
-  const blob = new Blob([S.currentCode], { type:'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  showDeploySuccess(url, true);
-  addMsg('fluxy', '🔗 <strong>Link Demo creato!</strong> Si apre in nuova tab. Per un URL pubblico permanente usa "Deploy Vercel"!');
-}
-
-async function deployVercel() {
-  const raw  = document.getElementById('deploy-name-input').value.trim();
-  const slug = raw.toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/--+/g,'-').replace(/^-|-$/g,'');
-  if (!slug) { alert('Inserisci un nome!'); return; }
-
-  addMsg('log', `🚀 [Deploy] Invio a Vercel — ${slug}.vercel.app...`);
-  setTyping(true);
-  try {
-    const res  = await fetch('/api/deploy', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name:slug, code:S.currentCode }) });
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Deploy fallito');
-    const url = `https://${slug}.vercel.app`;
-    showDeploySuccess(url, false);
-    addMsg('log', `✅ [Deploy] Online: ${url}`);
-    addMsg('fluxy', `🎉 <strong>La tua app è LIVE!</strong> Condividila! 🌍`);
-    if (typeof confetti !== 'undefined') confetti({ particleCount:120, spread:70, origin:{y:.6} });
-  } catch (err) {
-    addMsg('log', `❌ [Deploy] ${err.message}`);
-    addMsg('fluxy', `Problema deploy: <em>${err.message}</em>. Prova Link Demo o aggiungi VERCEL_TOKEN! 🛠️`);
-  } finally { setTyping(false); }
-}
-
-function showDeploySuccess(url, isDemo) {
-  document.getElementById('deploy-form').style.display    = 'none';
-  document.getElementById('deploy-success').style.display = 'block';
-  const link = document.getElementById('deploy-result-url');
-  link.href = url; link.textContent = isDemo ? '🔗 Apri preview locale' : url;
-}
-
-// ── TEMPLATES ────────────────────────────────────────────────────
-function renderTemplates() {
-  document.getElementById('templates-grid').innerHTML = TEMPLATES.map((t,i) =>
-    `<button class="tpl-card" onclick="useTemplate(${i})">
-      <div style="font-size:22px;margin-bottom:6px">${t.icon}</div>
-      <p style="font-weight:700;font-size:12px;margin-bottom:2px">${t.name}</p>
-      <p style="font-size:11px;color:rgba(255,255,255,.38)">${t.desc}</p>
-    </button>`
-  ).join('');
-}
-function openTemplates()  { document.getElementById('templates-modal').classList.add('open'); }
-function closeTemplates() { document.getElementById('templates-modal').classList.remove('open'); }
-
-async function useTemplate(i) {
-  const t = TEMPLATES[i]; if (!t) return;
-  closeTemplates();
-  document.getElementById('project-name-input').value = t.name;
-  addMsg('user', `[Template] ${t.name}`);
-  addMsg('fluxy', `✨ Ottima scelta! Costruisco <strong>${t.name}</strong>...`);
-  await startGeneration(t.prompt);
-}
-
-// ── NAVIGATION ───────────────────────────────────────────────────
-function navTo(p) {
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + p)?.classList.add('active');
-  if (p === 'projects') showProjects();
-}
-
-// ── SETTINGS ─────────────────────────────────────────────────────
-function openSettings() {
-  updateSettingsModeUI();
-  document.getElementById('settings-modal').classList.add('open');
-}
-function closeSettings() { document.getElementById('settings-modal').classList.remove('open'); }
-
-function saveSettingsKey() {
-  const key = document.getElementById('settings-api-key').value.trim();
-  if (key) {
-    localStorage.setItem('nf_api_key', key);
-    localStorage.setItem('nf_generator_key', key);
-    updateKeyStatus(true);
-    addMsg('fluxy', '✅ Chiave API salvata! Generazioni illimitate! 🚀');
-  } else {
-    localStorage.removeItem('nf_api_key');
-    localStorage.removeItem('nf_generator_key');
-    updateKeyStatus(false);
-    addMsg('fluxy', 'Chiave rimossa. Uso la chiave condivisa (5 app/giorno).');
-  }
-  closeSettings();
-}
-
-function switchMode(m) {
-  if (m === 'turbo' && !S.webllmReady) {
-    addMsg('fluxy', 'Per la Turbo Mode devo prima scaricare il motore AI. Ricarica la pagina per avviare il download! 🚀');
-    closeSettings(); return;
-  }
-  S.mode = m; localStorage.setItem('nf_mode', m);
-  updateModeStatus(); updateSettingsModeUI();
-  addMsg('fluxy', m === 'turbo' ? '⚡ Turbo Mode attivata!' : '☁️ Lite Mode attivata!');
-}
-
-function updateSettingsModeUI() {
-  const lb = document.getElementById('settings-lite-btn');
-  const tb = document.getElementById('settings-turbo-btn');
-  if (!lb || !tb) return;
-  lb.style.borderColor = S.mode==='lite'  ? 'rgba(0,229,255,.6)'  : 'rgba(255,255,255,.1)';
-  lb.style.color       = S.mode==='lite'  ? '#00e5ff'             : 'rgba(255,255,255,.6)';
-  lb.style.background  = S.mode==='lite'  ? 'rgba(0,229,255,.08)' : 'transparent';
-  tb.style.borderColor = S.mode==='turbo' ? 'rgba(138,43,226,.6)' : 'rgba(255,255,255,.1)';
-  tb.style.color       = S.mode==='turbo' ? '#c4a0ff'             : 'rgba(255,255,255,.6)';
-  tb.style.background  = S.mode==='turbo' ? 'rgba(138,43,226,.1)' : 'transparent';
-}
-
-function setQuality(q) {
-  S.quality = q; localStorage.setItem('nf_quality', q); updateQualityUI(q);
-}
-function updateQualityUI(q) {
-  ['fast','balanced','quality'].forEach(k => {
-    const b = document.getElementById('q-' + k); if (!b) return;
-    b.style.borderColor = k===q ? 'rgba(138,43,226,.5)' : 'rgba(255,255,255,.1)';
-    b.style.color       = k===q ? '#c4a0ff'             : 'rgba(255,255,255,.55)';
-    b.style.background  = k===q ? 'rgba(138,43,226,.1)' : 'transparent';
-  });
-}
-
-function setAppLang(l) {
-  S.appLang = l; localStorage.setItem('nf_app_lang', l); updateAppLangUI(l);
-}
-function updateAppLangUI(l) {
-  ['it','en','es','fr'].forEach(k => {
-    const b = document.getElementById('al-' + k); if (!b) return;
-    b.classList.toggle('active', k === l);
-  });
-}
-
-// ── APPEARANCE ───────────────────────────────────────────────────
-function setAccent(name) {
-  localStorage.setItem('nf_accent', name);
-  applyAccent(name);
-}
-function applyAccent(name) {
-  document.body.className = document.body.className.replace(/accent-\w+/g,'').trim();
-  if (name !== 'purple') document.body.classList.add('accent-' + name);
-  document.querySelectorAll('.accent-dot').forEach(d => d.classList.remove('active'));
-  document.getElementById('acc-' + name)?.classList.add('active');
-}
-
-function setDensity(d) {
-  localStorage.setItem('nf_density', d); applyDensity(d);
-}
-function applyDensity(d) {
-  document.body.className = document.body.className.replace(/density-\w+/g,'').trim();
-  document.body.classList.add('density-' + d);
-  ['compact','normal','spacious'].forEach(k => {
-    const b = document.getElementById('den-' + k); if (!b) return;
-    b.style.borderColor = k===d ? 'rgba(138,43,226,.5)' : 'rgba(255,255,255,.1)';
-    b.style.color       = k===d ? '#c4a0ff'             : 'rgba(255,255,255,.55)';
-    b.style.background  = k===d ? 'rgba(138,43,226,.1)' : 'transparent';
-  });
-}
-
-function setTextSize(s) {
-  localStorage.setItem('nf_textsize', s); applyTextSize(s);
-}
-function applyTextSize(s) {
-  document.body.className = document.body.className.replace(/text-\w{2}/g,'').trim();
-  document.body.classList.add('text-' + s);
-  ['sm','md','lg'].forEach(k => {
-    const b = document.getElementById('ts-' + k); if (!b) return;
-    b.style.borderColor = k===s ? 'rgba(138,43,226,.5)' : 'rgba(255,255,255,.1)';
-    b.style.color       = k===s ? '#c4a0ff'             : 'rgba(255,255,255,.55)';
-    b.style.background  = k===s ? 'rgba(138,43,226,.1)' : 'transparent';
-  });
-}
-
-function toggleContrast() {
-  const on = document.getElementById('toggle-contrast').checked;
-  document.body.classList.toggle('high-contrast', on);
-  localStorage.setItem('nf_contrast', on);
-}
-function toggleMotion() {
-  const on = document.getElementById('toggle-motion').checked;
-  document.body.classList.toggle('reduce-motion', on);
-  localStorage.setItem('nf_motion', on);
-}
-function toggleChatHistory() {
-  S.saveChatHistory = document.getElementById('toggle-chat-history').checked;
-  localStorage.setItem('nf_save_chat', S.saveChatHistory);
-}
-function toggleIncognito() {
-  S.incognito = document.getElementById('toggle-incognito').checked;
-  if (S.incognito) addMsg('fluxy', '🕵️ Modalità incognito attivata — nulla verrà salvato in questa sessione.');
-  else             addMsg('fluxy', '✅ Modalità incognito disattivata — i progetti verranno salvati normalmente.');
-}
-
-// ── STATUS UI ────────────────────────────────────────────────────
-function updateModeStatus() {
-  const el = document.getElementById('mode-status'); if (!el) return;
-  const t  = S.mode === 'turbo' && S.webllmReady;
-  el.innerHTML = `<span style="width:6px;height:6px;background:${t?'#c4a0ff':'#00e5ff'};border-radius:50%;display:inline-block"></span><span style="color:${t?'#c4a0ff':'#00e5ff'}">${t?'⚡ Turbo Mode':'☁️ Lite Mode'}</span>`;
-}
-function updateKeyStatus(hasKey) {
-  const el = document.getElementById('key-status'); if (!el) return;
-  el.innerHTML = hasKey
-    ? `<span style="width:6px;height:6px;background:#4ade80;border-radius:50%;display:inline-block"></span><span style="color:#4ade80">Key personale</span>`
-    : `<span style="width:6px;height:6px;background:rgba(255,255,255,.2);border-radius:50%;display:inline-block"></span><span>Key condivisa</span>`;
-}
-
-// ── STORAGE UTILS ────────────────────────────────────────────────
-async function exportAllProjects() {
-  const all = await DB.getAll('projects');
-  if (!all?.length) { addMsg('fluxy', 'Nessun progetto da esportare!'); closeSettings(); return; }
-  const zip = new JSZip();
-  all.forEach(p => zip.file(`${(p.name||'app').toLowerCase().replace(/\s+/g,'-')}/index.html`, p.code||''));
-  const blob = await zip.generateAsync({ type:'blob' });
-  const url  = URL.createObjectURL(blob);
-  Object.assign(document.createElement('a'),{href:url,download:'neuraflux-progetti.zip'}).click();
-  URL.revokeObjectURL(url);
-  closeSettings();
-  addMsg('fluxy', `📦 Esportatx ${all.length} progetti! 🎉`);
-}
-
-async function clearAllData() {
-  if (!confirm('Sei sicurx? Questa azione non si può annullare.')) return;
-  await Promise.all(['projects','versions','chats','feedbacks'].map(s => DB.clear(s)));
-  ['nf_api_key','nf_generator_key','nf_fluxy_mem','nf_quality','nf_mode','nf_onboarding_done','nf_lang','nf_app_lang','nf_accent','nf_density','nf_textsize','nf_contrast','nf_motion'].forEach(k => localStorage.removeItem(k));
-  S.versions = []; S.currentCode = ''; S.currentProjId = null;
-  renderVersionList();
-  closeSettings();
-  addMsg('fluxy', '🗑 Tutto pulito! Pronx a ricominciare. 🌱');
-}
-
-// ── FEEDBACK ─────────────────────────────────────────────────────
-function openFeedback() {
-  document.getElementById('feedback-form-content').style.display = 'block';
-  document.getElementById('feedback-success').style.display      = 'none';
-  S.feedbackStars = 0; S.feedbackType  = '';
-  document.querySelectorAll('.star-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('[id^="fbt-"]').forEach(b => { b.style.borderColor='rgba(255,255,255,.1)'; b.style.background='transparent'; b.style.color='rgba(255,255,255,.6)'; });
-  document.getElementById('feedback-text').value = '';
-  document.getElementById('feedback-modal').classList.add('open');
-}
-function closeFeedback() { document.getElementById('feedback-modal').classList.remove('open'); }
-
-function setStars(n) {
-  S.feedbackStars = n;
-  document.querySelectorAll('.star-btn').forEach((b,i) => b.classList.toggle('active', i < n));
-}
-
-function setFbType(t) {
-  S.feedbackType = t;
-  ['bug','idea','compliment','other'].forEach(k => {
-    const b = document.getElementById('fbt-' + k); if (!b) return;
-    const active = k === t;
-    b.style.borderColor = active ? 'rgba(138,43,226,.6)' : 'rgba(255,255,255,.1)';
-    b.style.background  = active ? 'rgba(138,43,226,.1)' : 'transparent';
-    b.style.color       = active ? '#c4a0ff'             : 'rgba(255,255,255,.6)';
-  });
-}
-
-async function submitFeedback() {
-  const text = document.getElementById('feedback-text').value.trim();
-  if (!text) { alert('Scrivi qualcosa prima! 😊'); return; }
-
-  const btn = document.getElementById('feedback-send-btn');
-  btn.disabled = true; btn.textContent = 'Invio in corso...';
-
-  const feedback = {
-    id:    Date.now(),
-    testo: text,
-    tipo:  S.feedbackType || 'altro',
-    stelle: S.feedbackStars,
-    data:  new Date().toLocaleString('it-IT'),
-    ts:    Date.now()
-  };
-
-  // Salva localmente
-  await DB.put('feedbacks', feedback);
-
-  // Analisi AI + invio email asincrono
-  analyzeFeedbackAndSend(feedback);
-
-  // Mostra successo subito senza aspettare l'email
-  document.getElementById('feedback-form-content').style.display = 'none';
-  document.getElementById('feedback-success').style.display      = 'block';
-  btn.disabled = false; btn.textContent = 'Invia feedback ✈️';
-}
-
-async function analyzeFeedbackAndSend(feedback) {
-  const key = getKey();
-  if (!key) {
-    // Senza chiave manda comunque l'email con analisi base
-    sendFeedbackEmail(feedback, { problema: feedback.testo, priorita:'media', categoria: feedback.tipo, divertente: false, parolacce: false, degno_di_nota: true, motivo: 'Analisi AI non disponibile (no API key)' });
-    return;
-  }
-
-  try {
-    const res   = await callGemini(key, FEEDBACK_ANALYZER_SP,
-      [{ role:'user', parts:[{ text: `Analizza questo feedback:\nTipo: ${feedback.tipo}\nStelleL ${feedback.stelle}/5\nTesto: "${feedback.testo}"` }] }],
-      300, 0.3
-    );
-    let raw = res?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    raw = raw.replace(/^```json?\n?/i,'').replace(/\n?```$/i,'').trim();
-    const analisi = JSON.parse(raw);
-
-    // Invia email se degno di nota, divertente o con parolacce
-    if (analisi.degno_di_nota || analisi.divertente || analisi.parolacce) {
-      sendFeedbackEmail(feedback, analisi);
+    // ── IMPOSTAZIONI & FEEDBACK (EmailJS) ───────────────────────────
+    function openSettings() {
+        document.getElementById('set-proj-name').value = state.projectName;
+        document.getElementById('set-sb-key').value = CONFIG.SB_KEY;
+        document.getElementById('settings-modal').style.display = 'flex';
     }
 
-    // Salva in coda per il digest 48h
-    S.pendingFeedbacks.push({ feedback, analisi });
-    localStorage.setItem('nf_pending_fb', JSON.stringify(S.pendingFeedbacks));
+    function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
 
-  } catch (err) {
-    console.error('[Feedback AI]', err);
-    // Invia comunque senza analisi
-    sendFeedbackEmail(feedback, { problema: feedback.testo, priorita:'media', categoria: feedback.tipo, divertente: false, parolacce: false, degno_di_nota: true, motivo: 'Errore analisi AI' });
-  }
-}
+    function saveSettings() {
+        state.projectName = document.getElementById('set-proj-name').value;
+        CONFIG.SB_KEY = document.getElementById('set-sb-key').value;
+        document.getElementById('main-project-name').value = state.projectName;
+        localStorage.setItem('nx_proj_name', state.projectName);
+        closeSettings();
+        appendMessage('fluxy', "Impostazioni salvate con successo! ✨");
+    }
 
-async function sendFeedbackEmail(feedback, analisi) {
-  try {
-    await emailjs.send(EJS_SERVICE, EJS_TEMPLATE, {
-      tipo:    `${feedback.tipo} ${analisi.divertente ? '😂' : ''} ${analisi.parolacce ? '🤬' : ''} — Priorità: ${analisi.priorita}`,
-      data:    feedback.data,
-      testo:   feedback.testo,
-      analisi: `Problema: ${analisi.problema}\nCategoria: ${analisi.categoria}\nPriorità: ${analisi.priorita}\nDivertente: ${analisi.divertente}\nPavolacce: ${analisi.parolacce}\n${analisi.motivo ? 'Nota: ' + analisi.motivo : ''}`
+    function openFeedback() {
+        const f = prompt("Cosa ne pensi di Nextly? Scrivi qui il tuo feedback:");
+        if (f) {
+            // Logica EmailJS (Assicurati di averla configurata su emailjs.com come nel vecchio codice)
+            emailjs.send("service_id", "template_id", {
+                project: state.projectName,
+                message: f,
+                date: new Date().toISOString()
+            }).then(() => {
+                alert("Grazie! Feedback inviato a Fluxy.");
+            });
+        }
+    }
+
+    // ── UI UTILS ────────────────────────────────────────────────────
+    function toggleTheme() {
+        const root = document.getElementById('html-root');
+        CONFIG.THEME = CONFIG.THEME === 'light' ? 'dark' : 'light';
+        root.setAttribute('data-theme', CONFIG.THEME);
+    }
+
+    function resizePreview(mode) {
+        const wrap = document.getElementById('preview-wrap');
+        if (mode === 'mobile') {
+            wrap.style.maxWidth = '375px';
+            wrap.style.margin = '0 auto';
+            wrap.style.border = '12px solid #222';
+            wrap.style.borderRadius = '40px';
+        } else {
+            wrap.style.maxWidth = '100%';
+            wrap.style.margin = '0';
+            wrap.style.border = 'none';
+            wrap.style.borderRadius = 'var(--radius)';
+        }
+    }
+
+    // Scorciatoie da tastiera (ESC per chiudere modali)
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            closeSettings();
+            closeTemplates();
+        }
     });
-    console.log('[EmailJS] Feedback inviato ✅');
-  } catch (err) {
-    console.error('[EmailJS] Errore invio:', err);
-  }
-}
-
-// ── DIGEST 48H ───────────────────────────────────────────────────
-function checkFeedbackDigest() {
-  const lastDigest = Number(localStorage.getItem('nf_last_digest') || 0);
-  const now        = Date.now();
-  if (now - lastDigest < CFG.FEEDBACK_INTERVAL) return;
-
-  const pending = JSON.parse(localStorage.getItem('nf_pending_fb') || '[]');
-  if (!pending.length) return;
-
-  // Invia digest
-  sendDigestEmail(pending);
-  localStorage.setItem('nf_last_digest', now);
-  localStorage.setItem('nf_pending_fb', '[]');
-  S.pendingFeedbacks = [];
-}
-
-async function sendDigestEmail(feedbacks) {
-  const key = getKey();
-  if (!key || !feedbacks.length) return;
-
-  try {
-    const summary = feedbacks.map((f,i) =>
-      `${i+1}. [${f.feedback.tipo}] ${f.analisi.priorita} — ${f.feedback.testo.slice(0,80)}... (${f.analisi.categoria})`
-    ).join('\n');
-
-    const alti   = feedbacks.filter(f => f.analisi.priorita === 'alta').length;
-    const medi   = feedbacks.filter(f => f.analisi.priorita === 'media').length;
-    const divert = feedbacks.filter(f => f.analisi.divertente).length;
-
-    await emailjs.send(EJS_SERVICE, EJS_TEMPLATE, {
-      tipo:    `📊 DIGEST 48H — ${feedbacks.length} feedback (${alti} alta priorità)`,
-      data:    new Date().toLocaleString('it-IT'),
-      testo:   summary,
-      analisi: `Totale: ${feedbacks.length}\nAlta priorità: ${alti}\nMedia priorità: ${medi}\nDivertenti: ${divert}\n\nFeedback da controllare: ${feedbacks.filter(f=>f.analisi.degno_di_nota).length}`
-    });
-    console.log('[Digest] Email 48h inviata ✅');
-  } catch (err) {
-    console.error('[Digest]', err);
-  }
-}
-
-// ── UTILS ────────────────────────────────────────────────────────
-function show(id, v) { const el = document.getElementById(id); if (el) el.style.display = v ? 'block' : 'none'; }
-function delay(ms)   { return new Promise(r => setTimeout(r, ms)); }
-function toggleKeyVis(id) { const el = document.getElementById(id); if (el) el.type = el.type==='password' ? 'text' : 'password'; }
-
-// ── CLOSE MODALS ─────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeSettings(); closeDeploy(); closeTemplates(); closeFeedback(); }
-});
-['settings-modal','deploy-modal','templates-modal','feedback-modal'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('click', function(e) {
-    if (e.target === this) { closeSettings(); closeDeploy(); closeTemplates(); closeFeedback(); }
-  });
-});
-
-// ── LOAD STATE ON BOOT ───────────────────────────────────────────
-window.addEventListener('load', () => {
-  updateKeyStatus(!!localStorage.getItem('nf_api_key'));
-  updateModeStatus();
-});
 </script>
 </body>
 </html>
