@@ -888,14 +888,14 @@ const EMAILJS_PUBLIC_KEY = 'tx9Oa7lVIwAXBU3yy';
 // ============================================================
 // SUPABASE INIT
 // ============================================================
-let supabase = null;
+let supabaseClient = null;
 let currentUser = null;
 
 async function initSupabase() {
   try {
     const { createClient } = window.supabase;
     // Usa il proxy API su Vercel per sicurezza
-    supabase = createClient(SUPABASE_URL, await getSupabaseKey());
+    supabaseClient = createClient(SUPABASE_URL, await getSupabaseKey());
     await checkAutoLogin();
   } catch(e) {
     console.error('Supabase init error:', e);
@@ -925,7 +925,7 @@ async function checkAutoLogin() {
     
     if (now - loginTime < fifteenDays && session.access_token) {
       try {
-        const { data, error } = await supabase.auth.setSession({
+        const { data, error } = await supabaseClient.auth.setSession({
           access_token: session.access_token,
           refresh_token: session.refresh_token
         });
@@ -960,12 +960,12 @@ async function doLogin() {
   if (!email || !password) return showAuthError('Inserisci email e password');
   
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) return showAuthError(error.message);
     
     currentUser = data.user;
     // Recupera username dal profile
-    const { data: profile } = await supabase.from('profiles').select('username').eq('id', data.user.id).single();
+    const { data: profile } = await supabaseClient.from('profiles').select('username').eq('id', data.user.id).single();
     currentUser.username = profile?.username || email.split('@')[0];
     
     // Salva sessione 15 giorni
@@ -990,12 +990,12 @@ async function doRegister() {
   if (password.length < 6) return showAuthError('Password minimo 6 caratteri');
   
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
     if (error) return showAuthError(error.message);
     
     // Crea profilo utente (solo ID + username — niente dati app)
     if (data.user) {
-      await supabase.from('profiles').insert({ id: data.user.id, username });
+      await supabaseClient.from('profiles').insert({ id: data.user.id, username });
       currentUser = data.user;
       currentUser.username = username;
       
@@ -1023,7 +1023,7 @@ function showAuthError(msg) {
 }
 
 async function doLogout() {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   localStorage.removeItem('nx_session');
   currentUser = null;
   document.getElementById('settings-panel').classList.add('hidden');
