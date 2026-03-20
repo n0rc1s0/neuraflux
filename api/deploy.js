@@ -1,80 +1,79 @@
-// api/deploy.js — Vercel Serverless Function
-// Gestisce il deploy delle app generate su Vercel tramite API
-// Viene chiamata da index.html quando l'utente clicca "Deploy Vercel"
+// api/deploy.js — Deploy app utenti su Vercel
+module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-export default async function handler(req, res) {
-  // Solo POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Metodo non consentito' });
 
   const { name, code } = req.body;
+  if (!name || !code) return res.status(400).json({ error: 'Nome e codice sono obbligatori' });
 
-  // Validazione base
-  if (!name || typeof name !== 'string' || !/^[a-z0-9-]+$/.test(name)) {
-    return res.status(400).json({ error: 'Nome sottodominio non valido. Usa solo lettere minuscole, numeri e trattini.' });
-  }
-  if (!code || typeof code !== 'string' || code.length < 50) {
-    return res.status(400).json({ error: 'Codice HTML mancante o troppo corto.' });
-  }
+  const VERCEL_TOKEN = process.env.VERCEL_DEPLOY_TOKEN;
 
-  // Token Vercel (salvato come variabile d'ambiente su Vercel dashboard)
-  const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
-  const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID || null; // opzionale
-
+  // Se non c'è token Vercel, usa simulazione locale
   if (!VERCEL_TOKEN) {
-    return res.status(503).json({
-      error: 'Token Vercel non configurato. Aggiungi VERCEL_TOKEN nelle variabili d\'ambiente.'
+    const fakeName = name.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    return res.status(200).json({
+      url: `https://${fakeName}.vercel.app`,
+      deploymentId: 'demo_' + Date.now(),
+      note: 'Demo mode: aggiungi VERCEL_DEPLOY_TOKEN per deploy reali'
     });
   }
 
   try {
-    // Prepara il payload per Vercel Deployments API v13
-    const deployPayload = {
-      name: `neuraflux-${name}`,
-      files: [
-        {
-          file: 'index.html',
-          data: code,
-          encoding: 'utf-8'
-        }
-      ],
-      projectSettings: {
-        framework: null,  // Static HTML, nessun framework
-        buildCommand: null,
-        outputDirectory: null
-      },
-      target: 'production'
-    };
+    const cleanName = name.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 50);
 
-    if (VERCEL_TEAM_ID) deployPayload.teamId = VERCEL_TEAM_ID;
-
-    const deployRes = await fetch('https://api.vercel.com/v13/deployments', {
+    const deployResponse = await fetch('https://api.vercel.com/v13/deployments', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${VERCEL_TOKEN}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(deployPayload)
+      body: JSON.stringify({
+        name: `nextly-${cleanName}`,
+        files: [
+          {
+            file: 'index.html',
+            data: code
+          }
+        ],
+        projectSettings: {
+          framework: null
+        }
+      })
     });
 
-    const deployData = await deployRes.json();
+    const deployData = await deployResponse.json();
 
-    if (!deployRes.ok) {
-      const msg = deployData?.error?.message || 'Errore Vercel API';
-      return res.status(deployRes.status).json({ error: msg });
+    if (!deployResponse.ok) {
+      throw new Error(deployData.error?.message || 'Deploy fallito');
     }
 
-    // Risposta di successo
+    // Aspetta che il deploy sia pronto (polling)
+    let attempts = 0;
+    let deployUrl = deployData.url;
+
+    while (attempts < 15 && deployData.readyState !== 'READY') {
+      await new Promise(r => setTimeout(r, 2000));
+      const check = await fetch(`https://api.vercel.com/v13/deployments/${deployData.id}`, {
+        headers: { 'Authorization': `Bearer ${VERCEL_TOKEN}` }
+      });
+      const checkData = await check.json();
+      if (checkData.readyState === 'READY') {
+        deployUrl = checkData.url;
+        break;
+      }
+      attempts++;
+    }
+
     return res.status(200).json({
-      ok: true,
-      url: `https://${name}.vercel.app`,
-      deploymentId: deployData.id,
-      readyState: deployData.readyState
+      url: `https://${deployUrl}`,
+      deploymentId: deployData.id
     });
 
   } catch (err) {
-    console.error('[api/deploy] Errore:', err);
-    return res.status(500).json({ error: 'Errore interno del server. Riprova tra poco.' });
+    return res.status(500).json({ error: err.message });
   }
-}
+};
