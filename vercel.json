@@ -1,22 +1,17 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "builds": [
+    { "src": "api/*.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "public/**", "use": "@vercel/static" }
   ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
-      ]
-    }
-  ]
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "env": {
+    "GEMINI_KEY": "@gemini_key",
+    "SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "VERCEL_DEPLOY_TOKEN": "@vercel_deploy_token"
+  }
 }
