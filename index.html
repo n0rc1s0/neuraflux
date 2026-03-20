@@ -208,7 +208,7 @@
         setUIState(true);
 
         try {
-            // Chiamata alla Serverless Function su Vercel (/api/generate.js)
+            // Chiamata alla Serverless Function su Vercel (/api/generate.mjs)
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
