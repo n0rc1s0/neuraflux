@@ -1,487 +1,2413 @@
 <!DOCTYPE html>
-<html lang="it" id="html-root" data-theme="light">
+<html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-    <title>Nextly — Professional AI Builder</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nextly — Crea la tua app con l'AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --mint: #7FFFD4;
+    --lavender: #C9B8FF;
+    --coral: #FF6B6B;
+    --cream: #FAF8F3;
+    --ink: #1A1A2E;
+    --ink2: #2D2D44;
+    --muted: #8A8A9A;
+    --border: rgba(0,0,0,0.08);
+    --glass: rgba(255,255,255,0.7);
+    --shadow: 0 4px 32px rgba(0,0,0,0.08);
+    --radius: 20px;
+    --accent: var(--mint);
+    --bg: var(--cream);
+    --surface: #FFFFFF;
+    --text: var(--ink);
+    --text2: var(--muted);
+    --border-col: var(--border);
+  }
+  [data-theme="dark"] {
+    --bg: #0E0E1A;
+    --surface: #1A1A2E;
+    --text: #F0EFFF;
+    --text2: #7A7A9A;
+    --border-col: rgba(255,255,255,0.07);
+    --glass: rgba(26,26,46,0.85);
+    --shadow: 0 4px 32px rgba(0,0,0,0.4);
+    --border: rgba(255,255,255,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  h1,h2,h3,.font-display { font-family: 'Syne', sans-serif; }
 
-    <style>
-        :root {
-            --mint: #4ECDC4; --lavender: #9B8FE8; --coral: #FF6B6B;
-            --grad: linear-gradient(135deg, var(--mint) 0%, var(--lavender) 100%);
-            --bg: #F8F7F4; --bg2: #FFFFFF; --bg3: #F1F0EC;
-            --text: #1A1A2E; --text2: #6B6B80; --border: #E8E5DF;
-            --radius: 20px;
-        }
-        [data-theme="dark"] {
-            --bg: #0F0F14; --bg2: #16161F; --bg3: #1E1E2A;
-            --text: #F0EEF8; --text2: #9090A8; --border: #2A2A3A;
-        }
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--lavender); border-radius: 4px; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; transition: 0.3s; }
-        .display { font-family: 'Syne', sans-serif; font-weight: 800; }
-        .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); }
-        
-        /* Sidebar & Navigation */
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; color: var(--text2); cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 500; }
-        .nav-item:hover { background: var(--bg3); color: var(--mint); }
-        .nav-item.active { background: rgba(78, 205, 196, 0.1); color: var(--mint); }
+  /* DECORATIVE CIRCLES */
+  .deco-circle {
+    position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+    opacity: 0.12;
+  }
 
-        /* Chat System */
-        .msg-fluxy { background: var(--bg3); padding: 16px; border-radius: 20px 20px 20px 4px; margin-bottom: 12px; font-size: 13.5px; line-height: 1.6; max-width: 88%; align-self: flex-start; border: 1px solid var(--border); }
-        .msg-user { background: var(--grad); color: white; padding: 16px; border-radius: 20px 20px 4px 20px; margin-bottom: 12px; font-size: 13.5px; max-width: 88%; align-self: flex-end; box-shadow: 0 4px 15px rgba(155, 143, 232, 0.2); }
-        
-        /* Modali (Logica NeuraFlux v4.4) */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  /* GLASS CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-col);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
 
-        /* Fluxy Character */
-        .fluxy-avatar { width: 45px; height: 45px; background: #E0F7F6; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .excited #eyes-normal { display: none; }
-        .excited #eyes-happy { display: block; }
-        #eyes-happy { display: none; }
+  /* BUTTONS */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--mint), var(--lavender));
+    color: var(--ink);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    border: none;
+    border-radius: 100px;
+    padding: 12px 28px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(127,255,212,0.3); }
+  .btn-secondary {
+    background: transparent;
+    border: 1.5px solid var(--border-col);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    border-radius: 100px;
+    padding: 11px 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-secondary:hover { border-color: var(--lavender); color: var(--lavender); }
+  .btn-icon {
+    background: transparent;
+    border: 1.5px solid var(--border-col);
+    color: var(--text2);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-size: 16px;
+  }
+  .btn-icon:hover { border-color: var(--lavender); color: var(--lavender); }
 
-        /* Bottoni */
-        .btn { padding: 12px 24px; border-radius: 99px; font-weight: 700; cursor: pointer; transition: 0.2s; border: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-primary { background: var(--grad); color: white; }
-        .btn-secondary { background: var(--bg3); color: var(--text); }
+  /* INPUT */
+  .input {
+    background: var(--bg);
+    border: 1.5px solid var(--border-col);
+    border-radius: 14px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .input:focus { border-color: var(--mint); }
+  .input::placeholder { color: var(--text2); }
 
-        /* Preview Area */
-        #preview-wrap { position: relative; flex: 1; background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .skel-loader { position: absolute; inset: 0; background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; z-index: 10; display: none; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-    </style>
+  /* FLUXY CLOUD AVATAR */
+  .fluxy-avatar {
+    width: 40px; height: 40px;
+    animation: float 3s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* CHAT MESSAGES */
+  .msg-fluxy {
+    background: var(--surface);
+    border: 1px solid var(--border-col);
+    border-radius: 18px 18px 18px 4px;
+    padding: 14px 18px;
+    max-width: 85%;
+    font-size: 14px;
+    line-height: 1.6;
+    align-self: flex-start;
+  }
+  .msg-user {
+    background: linear-gradient(135deg, var(--mint), var(--lavender));
+    color: var(--ink);
+    border-radius: 18px 18px 4px 18px;
+    padding: 12px 18px;
+    max-width: 85%;
+    font-size: 14px;
+    line-height: 1.6;
+    align-self: flex-end;
+    font-weight: 500;
+  }
+
+  /* INTERVIEW CHIPS */
+  .chip {
+    background: var(--bg);
+    border: 1.5px solid var(--border-col);
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--text);
+  }
+  .chip:hover { border-color: var(--mint); }
+  .chip.selected { background: linear-gradient(135deg, var(--mint)22, var(--lavender)22); border-color: var(--mint); color: var(--text); }
+  .chip.selected::before { content: '✓ '; color: var(--mint); font-weight: 700; }
+
+  /* PREVIEW TABS */
+  .preview-tab {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text2);
+    background: transparent;
+    border: none;
+    font-family: 'Syne', sans-serif;
+  }
+  .preview-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+  /* SIDEBAR NAV */
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    color: var(--text2);
+  }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: linear-gradient(135deg, var(--mint)20, var(--lavender)20); color: var(--text); }
+
+  /* SYSTEM LOG BADGE */
+  .syslog {
+    background: linear-gradient(135deg, var(--mint)15, var(--lavender)15);
+    border: 1px solid var(--mint)44;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    align-self: stretch;
+  }
+
+  /* TYPING INDICATOR */
+  .typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+  .typing span {
+    width: 6px; height: 6px; background: var(--lavender);
+    border-radius: 50%;
+    animation: blink 1.2s ease-in-out infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal {
+    background: var(--surface);
+    border-radius: 28px;
+    padding: 40px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.2);
+    border: 1px solid var(--border-col);
+    position: relative;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 9999;
+    animation: slideUp 0.3s ease;
+    white-space: nowrap;
+  }
+  @keyframes slideUp { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 4px; background: var(--border-col); border-radius: 4px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--mint), var(--lavender));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  /* ONBOARDING STEP */
+  .onb-step { display: none; }
+  .onb-step.active { display: flex; flex-direction: column; gap: 20px; }
+
+  /* MODE CARD */
+  .mode-card {
+    border: 2px solid var(--border-col);
+    border-radius: 18px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-card:hover { border-color: var(--mint); transform: translateY(-2px); }
+  .mode-card.selected { border-color: var(--mint); background: linear-gradient(135deg, var(--mint)10, var(--lavender)10); }
+
+  /* SETTINGS PANEL */
+  .settings-section { margin-bottom: 28px; }
+  .settings-label { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 12px; }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-col); }
+  .toggle { width: 44px; height: 24px; background: var(--border-col); border-radius: 12px; cursor: pointer; position: relative; transition: background 0.2s; border: none; }
+  .toggle.on { background: linear-gradient(90deg, var(--mint), var(--lavender)); }
+  .toggle::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: left 0.2s; }
+  .toggle.on::after { left: 23px; }
+
+  /* ACCENT COLORS */
+  .accent-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; }
+  .accent-dot.active { border-color: var(--text); transform: scale(1.1); }
+
+  /* AD STRIP */
+  .ad-strip {
+    background: linear-gradient(90deg, var(--mint)15, var(--lavender)15);
+    border-top: 1px solid var(--border-col);
+    padding: 8px 20px;
+    font-size: 12px;
+    color: var(--text2);
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ad-strip a { color: var(--mint); text-decoration: none; font-weight: 600; }
+
+  /* FILE PREVIEW IN CHAT */
+  .file-chip-chat {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg);
+    border: 1.5px solid var(--border-col);
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  /* HIDDEN */
+  .hidden { display: none !important; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .chat-panel { width: 100% !important; }
+  }
+
+  /* LOGO SVG */
+  .logo-n { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; }
+</style>
 </head>
 <body>
 
-<div id="settings-modal" class="modal" onclick="if(event.target===this) closeSettings()">
-    <div class="card modal-content p-8">
-        <h2 class="display text-2xl mb-2">Impostazioni</h2>
-        <p class="text-sm text-gray-400 mb-6">Personalizza la tua esperienza con Nextly.</p>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold uppercase mb-2">Nome Progetto</label>
-                <input id="set-proj-name" type="text" class="w-full p-3 card bg-gray-50 outline-none border-mint/20 focus:border-mint">
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase mb-2">Supabase Anon Key</label>
-                <input id="set-sb-key" type="password" class="w-full p-3 card bg-gray-50 outline-none">
-            </div>
-            <button class="btn btn-primary w-full justify-center" onclick="saveSettings()">Salva Configurazioni</button>
-        </div>
+<!-- DECO CIRCLES -->
+<div class="deco-circle" style="width:500px;height:500px;background:var(--mint);top:-200px;right:-100px;"></div>
+<div class="deco-circle" style="width:300px;height:300px;background:var(--lavender);bottom:-100px;left:-80px;"></div>
+
+<!-- ========== AUTH MODAL ========== -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal" style="max-width:420px;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <!-- LOGO -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <defs>
+            <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7FFFD4"/>
+              <stop offset="100%" stop-color="#C9B8FF"/>
+            </linearGradient>
+          </defs>
+          <!-- Cloud shape -->
+          <ellipse cx="22" cy="26" rx="18" ry="12" fill="url(#lg1)"/>
+          <circle cx="14" cy="22" r="9" fill="url(#lg1)"/>
+          <circle cx="28" cy="20" r="11" fill="url(#lg1)"/>
+          <circle cx="22" cy="18" r="10" fill="url(#lg1)"/>
+          <!-- Ghost peek -->
+          <ellipse cx="22" cy="34" rx="5" ry="6" fill="white" opacity="0.9"/>
+          <circle cx="20" cy="32" r="1.5" fill="var(--ink)"/>
+          <circle cx="24" cy="32" r="1.5" fill="var(--ink)"/>
+          <!-- N letter -->
+          <text x="16" y="27" font-family="Syne" font-weight="800" font-size="12" fill="var(--ink)" opacity="0.7">N</text>
+        </svg>
+        <span class="logo-n" style="background:linear-gradient(135deg,#7FFFD4,#C9B8FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Nextly</span>
+      </div>
+      <h2 style="font-size:24px;font-weight:700;margin-bottom:6px;">Bentornatx 👋</h2>
+      <p style="color:var(--text2);font-size:14px;">La tua piattaforma per creare app con l'AI</p>
     </div>
+
+    <!-- Auth tabs -->
+    <div style="display:flex;gap:4px;background:var(--bg);border-radius:14px;padding:4px;margin-bottom:24px;">
+      <button onclick="switchAuthTab('login')" id="tab-login" class="preview-tab active" style="flex:1;padding:10px;">Accedi</button>
+      <button onclick="switchAuthTab('register')" id="tab-register" class="preview-tab" style="flex:1;padding:10px;">Registrati</button>
+    </div>
+
+    <div id="auth-login-form">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input class="input" id="login-email" type="email" placeholder="Email">
+        <input class="input" id="login-password" type="password" placeholder="Password">
+        <button class="btn-primary" style="width:100%;justify-content:center;margin-top:4px;" onclick="doLogin()">
+          Accedi
+        </button>
+      </div>
+    </div>
+
+    <div id="auth-register-form" class="hidden">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input class="input" id="reg-username" type="text" placeholder="Username (come vuoi essere chiamatx)">
+        <input class="input" id="reg-email" type="email" placeholder="Email">
+        <input class="input" id="reg-password" type="password" placeholder="Password (min. 6 caratteri)">
+        <button class="btn-primary" style="width:100%;justify-content:center;margin-top:4px;" onclick="doRegister()">
+          Crea account
+        </button>
+      </div>
+    </div>
+
+    <p id="auth-error" style="color:var(--coral);font-size:13px;margin-top:12px;text-align:center;display:none;"></p>
+  </div>
 </div>
 
-<div id="templates-modal" class="modal" onclick="if(event.target===this) closeTemplates()">
-    <div class="card modal-content p-8 max-w-4xl">
-        <h2 class="display text-2xl mb-6 text-center">Libreria Template</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="template-grid">
-            </div>
+<!-- ========== ONBOARDING MODAL ========== -->
+<div class="modal-overlay hidden" id="onboarding-modal">
+  <div class="modal">
+    <!-- Progress -->
+    <div style="display:flex;gap:6px;margin-bottom:28px;">
+      <div id="onb-p1" style="height:3px;flex:1;border-radius:3px;background:linear-gradient(90deg,var(--mint),var(--lavender));"></div>
+      <div id="onb-p2" style="height:3px;flex:1;border-radius:3px;background:var(--border-col);transition:background 0.3s;"></div>
+      <div id="onb-p3" style="height:3px;flex:1;border-radius:3px;background:var(--border-col);transition:background 0.3s;"></div>
     </div>
+
+    <!-- Step 1: Nome + Lingua -->
+    <div class="onb-step active" id="onb-step-1">
+      <div>
+        <h2 style="font-size:26px;margin-bottom:8px;">Ciao! Come ti chiami? 👋</h2>
+        <p style="color:var(--text2);font-size:14px;">Nextly parlerà con te in modo personalizzato</p>
+      </div>
+      <input class="input" id="onb-name" placeholder="Il tuo nome o username" style="font-size:16px;padding:16px;">
+      <div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:10px;">Lingua dell'interfaccia</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="chip selected" onclick="selectLang(this,'it')">🇮🇹 Italiano</button>
+          <button class="chip" onclick="selectLang(this,'en')">🇬🇧 English</button>
+          <button class="chip" onclick="selectLang(this,'es')">🇪🇸 Español</button>
+          <button class="chip" onclick="selectLang(this,'fr')">🇫🇷 Français</button>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="onbNext(2)">Avanti →</button>
+    </div>
+
+    <!-- Step 2: Modalità AI -->
+    <div class="onb-step" id="onb-step-2">
+      <div>
+        <h2 style="font-size:26px;margin-bottom:8px;">Come vuoi usare l'AI? 🤖</h2>
+        <p style="color:var(--text2);font-size:14px;">Puoi cambiare in qualsiasi momento nelle impostazioni</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="mode-card selected" id="mode-lite-card" onclick="selectMode('lite')">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="font-size:28px;">☁️</span>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px;">Lite Mode</div>
+              <p style="font-size:13px;color:var(--text2);line-height:1.5;">Usa Gemini AI di Google — richiede internet. Funziona su qualsiasi dispositivo. Gratis con la tua API key.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mode-card" id="mode-turbo-card" onclick="selectMode('turbo')">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="font-size:28px;">⚡</span>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px;">Turbo Mode <span style="font-size:11px;background:var(--coral)22;color:var(--coral);padding:2px 8px;border-radius:20px;">Beta</span></div>
+              <p style="font-size:13px;color:var(--text2);line-height:1.5;">AI locale sul tuo dispositivo — funziona offline, illimitata. Richiede PC con Chrome e ~6GB RAM libera.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Key setup per Lite Mode -->
+      <div id="lite-key-setup">
+        <div style="background:linear-gradient(135deg,var(--mint)10,var(--lavender)10);border:1px solid var(--mint)44;border-radius:16px;padding:20px;">
+          <p style="font-weight:600;font-size:14px;margin-bottom:8px;">🔑 Configura il tuo motore AI</p>
+          <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;">La chiave API è <strong>completamente gratuita</strong>. Google la offre a tuttx. Nessuna carta di credito richiesta.</p>
+          <ol style="font-size:13px;color:var(--text2);line-height:2;margin-bottom:12px;padding-left:16px;">
+            <li>Vai su <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--mint);font-weight:600;">aistudio.google.com</a></li>
+            <li>Accedi con il tuo account Google</li>
+            <li>Clicca "Get API Key" → "Create"</li>
+            <li>Copia la chiave qui sotto 👇</li>
+          </ol>
+          <div style="display:flex;gap:8px;">
+            <input class="input" id="onb-api-key" placeholder="AIza..." style="flex:1;">
+            <button class="btn-primary" style="padding:12px 16px;white-space:nowrap;" onclick="saveApiKey()">Salva ✓</button>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-top:8px;">🔒 La chiave resta solo sul tuo dispositivo. Non la vediamo mai.</p>
+          <button onclick="skipApiKey()" style="background:none;border:none;color:var(--text2);font-size:12px;margin-top:8px;cursor:pointer;text-decoration:underline;">
+            Oppure: usa la chiave condivisa (limite 5 app/giorno)
+          </button>
+        </div>
+      </div>
+
+      <div id="turbo-device-check" class="hidden">
+        <button class="btn-primary" style="width:100%;justify-content:center;" onclick="checkTurboCompatibility()">
+          ⚡ Controlla compatibilità dispositivo
+        </button>
+      </div>
+
+      <button class="btn-primary" id="onb-next-2" onclick="onbNext(3)" style="display:none;">Avanti →</button>
+    </div>
+
+    <!-- Step 3: Pronto! -->
+    <div class="onb-step" id="onb-step-3">
+      <div style="text-align:center;">
+        <div style="font-size:60px;margin-bottom:16px;">🎉</div>
+        <h2 style="font-size:26px;margin-bottom:8px;">Tutto pronto, <span id="onb-name-display"></span>!</h2>
+        <p style="color:var(--text2);font-size:14px;line-height:1.6;">Fluxy è pronto ad aiutarti a creare app straordinarie. Partiamo?</p>
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;font-size:16px;padding:16px;" onclick="finishOnboarding()">
+        Entra in Nextly ✨
+      </button>
+    </div>
+  </div>
 </div>
 
-<div class="flex h-screen p-3 gap-3">
-    <aside class="card w-64 p-5 flex flex-col gap-6">
-        <div class="flex items-center gap-3 px-2">
-            <svg width="32" height="32" viewBox="0 0 100 100" class="fluxy-avatar">
-                <circle cx="50" cy="50" r="45" fill="url(#g)" />
-                <defs><linearGradient id="g"><stop stop-color="#4ECDC4"/><stop offset="1" stop-color="#9B8FE8"/></linearGradient></defs>
-                <path d="M30 50 Q50 20 70 50" fill="none" stroke="white" stroke-width="8" stroke-linecap="round"/>
-            </svg>
-            <h1 class="display text-xl tracking-tight">nextly</h1>
-        </div>
+<!-- ========== SETTINGS PANEL ========== -->
+<div class="modal-overlay hidden" id="settings-panel">
+  <div class="modal" style="max-width:520px;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
+      <h2 style="font-size:22px;">Impostazioni</h2>
+      <button class="btn-icon" onclick="document.getElementById('settings-panel').classList.add('hidden')">✕</button>
+    </div>
 
-        <nav class="flex flex-col gap-1">
-            <div class="nav-item active" onclick="showSection('builder')"><i data-lucide="layout"></i> Builder</div>
-            <div class="nav-item" onclick="openTemplates()"><i data-lucide="layers"></i> Templates</div>
-            <div class="nav-item" onclick="openSettings()"><i data-lucide="settings"></i> Impostazioni</div>
-            <div class="nav-item" onclick="openFeedback()"><i data-lucide="message-square"></i> Feedback</div>
-        </nav>
-
-        <div class="mt-auto pt-4 border-t border-border">
-            <p class="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Time Machine</p>
-            <div id="history-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2"></div>
+    <!-- API Key -->
+    <div class="settings-section">
+      <div class="settings-label">Motore AI</div>
+      <div style="background:var(--bg);border-radius:14px;padding:16px;margin-bottom:8px;">
+        <p style="font-size:13px;font-weight:600;margin-bottom:8px;">Gemini API Key personale (Generatore)</p>
+        <div style="display:flex;gap:8px;">
+          <input class="input" id="settings-api-key" placeholder="AIza..." type="password">
+          <button class="btn-primary" style="padding:10px 16px;" onclick="saveSettingsApiKey()">Salva</button>
         </div>
+        <p style="font-size:12px;color:var(--text2);margin-top:6px;">Se inserita, viene usata per il Generatore. Resta solo sul tuo dispositivo.</p>
+      </div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Modalità AI</span>
+        <div style="display:flex;gap:6px;">
+          <button id="mode-btn-lite" class="chip selected" onclick="setModeFromSettings('lite')" style="padding:6px 12px;">Lite</button>
+          <button id="mode-btn-turbo" class="chip" onclick="setModeFromSettings('turbo')" style="padding:6px 12px;">Turbo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generatore -->
+    <div class="settings-section">
+      <div class="settings-label">Generatore</div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Lingua delle app generate</span>
+        <select class="input" id="gen-lang" style="width:auto;padding:6px 10px;" onchange="saveSetting('gen_lang',this.value)">
+          <option value="it">🇮🇹 Italiano</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="fr">🇫🇷 Français</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Framework preferito</span>
+        <select class="input" id="gen-framework" style="width:auto;padding:6px 10px;" onchange="saveSetting('gen_framework',this.value)">
+          <option value="tailwind">Tailwind CSS</option>
+          <option value="vanilla">HTML puro</option>
+          <option value="bootstrap">Bootstrap</option>
+        </select>
+      </div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Qualità output</span>
+        <select class="input" id="gen-quality" style="width:auto;padding:6px 10px;" onchange="saveSetting('gen_quality',this.value)">
+          <option value="fast">⚡ Veloce</option>
+          <option value="balanced" selected>⚖️ Bilanciata</option>
+          <option value="max">🎯 Massima</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Aspetto -->
+    <div class="settings-section">
+      <div class="settings-label">Aspetto</div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Tema</span>
+        <div style="display:flex;gap:6px;">
+          <button class="chip" onclick="setTheme('light')" id="theme-light">☀️ Chiaro</button>
+          <button class="chip" onclick="setTheme('dark')" id="theme-dark">🌙 Scuro</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Colore accento</span>
+        <div style="display:flex;gap:6px;">
+          <div class="accent-dot active" style="background:#7FFFD4;" onclick="setAccent('#7FFFD4','#C9B8FF',this)" title="Mint"></div>
+          <div class="accent-dot" style="background:#FF6B9D;" onclick="setAccent('#FF6B9D','#FFB347',this)" title="Rosa"></div>
+          <div class="accent-dot" style="background:#5DADE2;" onclick="setAccent('#5DADE2','#A29BFE',this)" title="Blu"></div>
+          <div class="accent-dot" style="background:#55EFC4;" onclick="setAccent('#55EFC4','#FDCB6E',this)" title="Verde"></div>
+          <div class="accent-dot" style="background:#FD79A8;" onclick="setAccent('#FD79A8','#E17055',this)" title="Corallo"></div>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Densità UI</span>
+        <select class="input" style="width:auto;padding:6px 10px;" onchange="setDensity(this.value)">
+          <option value="normal" selected>Normale</option>
+          <option value="compact">Compatta</option>
+          <option value="spacious">Spaziosa</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Accessibilità -->
+    <div class="settings-section">
+      <div class="settings-label">Accessibilità</div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Dimensione testo</span>
+        <div style="display:flex;gap:6px;">
+          <button class="chip" onclick="setFontSize('sm')" style="padding:6px 12px;">S</button>
+          <button class="chip selected" onclick="setFontSize('md')" style="padding:6px 12px;">M</button>
+          <button class="chip" onclick="setFontSize('lg')" style="padding:6px 12px;">L</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Contrasto alto</span>
+        <button class="toggle" id="toggle-contrast" onclick="toggleContrast(this)"></button>
+      </div>
+    </div>
+
+    <!-- Privacy -->
+    <div class="settings-section">
+      <div class="settings-label">Privacy & Storage</div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Salva cronologia chat</span>
+        <button class="toggle on" id="toggle-history" onclick="this.classList.toggle('on');saveSetting('save_history',this.classList.contains('on'))"></button>
+      </div>
+      <div class="settings-row">
+        <span style="font-size:14px;">Modalità incognito</span>
+        <button class="toggle" id="toggle-incognito" onclick="toggleIncognito(this)"></button>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-secondary" style="font-size:13px;" onclick="exportAllProjects()">📦 Esporta tutti i progetti</button>
+        <button class="btn-secondary" style="font-size:13px;color:var(--coral);border-color:var(--coral);" onclick="clearAllData()">🗑️ Cancella tutti i dati</button>
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="settings-section">
+      <div class="settings-label">Feedback</div>
+      <div style="background:var(--bg);border-radius:14px;padding:16px;">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Condividi la tua esperienza con Nextly. Il tuo feedback viene analizzato ogni 48 ore.</p>
+        <select class="input" id="feedback-type" style="margin-bottom:8px;">
+          <option value="bug">🐛 Segnala un problema</option>
+          <option value="idea">💡 Suggerisci una funzione</option>
+          <option value="compliment">💖 Complimento</option>
+          <option value="other">💬 Altro</option>
+        </select>
+        <textarea class="input" id="feedback-text" rows="3" placeholder="Scrivi qui il tuo feedback..." style="resize:none;margin-bottom:8px;"></textarea>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="font-size:13px;color:var(--text2);">Voto:</span>
+          <div id="star-rating" style="display:flex;gap:4px;">
+            <span onclick="setStars(1)" style="font-size:22px;cursor:pointer;">⭐</span>
+            <span onclick="setStars(2)" style="font-size:22px;cursor:pointer;">⭐</span>
+            <span onclick="setStars(3)" style="font-size:22px;cursor:pointer;">⭐</span>
+            <span onclick="setStars(4)" style="font-size:22px;cursor:pointer;">⭐</span>
+            <span onclick="setStars(5)" style="font-size:22px;cursor:pointer;">⭐</span>
+          </div>
+        </div>
+        <button class="btn-primary" style="width:100%;justify-content:center;" onclick="submitFeedback()">Invia feedback</button>
+      </div>
+    </div>
+
+    <button onclick="doLogout()" style="background:none;border:none;color:var(--coral);font-size:14px;cursor:pointer;margin-top:8px;">
+      → Esci dall'account
+    </button>
+  </div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div id="main-app" class="hidden" style="display:flex;flex-direction:column;height:100dvh;">
+
+  <!-- TOP AD STRIP -->
+  <div class="ad-strip" style="border-bottom:1px solid var(--border-col);border-top:none;">
+    <span>💡 Hai una Gemini API key gratuita?</span>
+    <a href="https://aistudio.google.com/app/apikey" target="_blank">Ottienila in 2 minuti →</a>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div style="display:flex;flex:1;overflow:hidden;padding:12px;gap:12px;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar card" style="width:240px;flex-shrink:0;display:flex;flex-direction:column;padding:16px;gap:4px;overflow-y:auto;">
+      <!-- Logo -->
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 14px 16px;">
+        <svg width="32" height="32" viewBox="0 0 44 44" fill="none">
+          <defs>
+            <linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7FFFD4"/><stop offset="100%" stop-color="#C9B8FF"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="22" cy="26" rx="18" ry="12" fill="url(#lg2)"/>
+          <circle cx="14" cy="22" r="9" fill="url(#lg2)"/>
+          <circle cx="28" cy="20" r="11" fill="url(#lg2)"/>
+          <circle cx="22" cy="18" r="10" fill="url(#lg2)"/>
+          <ellipse cx="22" cy="34" rx="5" ry="6" fill="white" opacity="0.9"/>
+          <circle cx="20" cy="32" r="1.5" fill="#1A1A2E"/>
+          <circle cx="24" cy="32" r="1.5" fill="#1A1A2E"/>
+          <text x="16" y="27" font-family="Syne" font-weight="800" font-size="12" fill="#1A1A2E" opacity="0.7">N</text>
+        </svg>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;background:linear-gradient(135deg,#7FFFD4,#C9B8FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Nextly</span>
+      </div>
+
+      <div class="nav-item active" onclick="showView('creator')" id="nav-creator">
+        <span>✦</span> Crea app
+      </div>
+      <div class="nav-item" onclick="showView('projects')" id="nav-projects">
+        <span>📁</span> Progetti
+      </div>
+      <div class="nav-item" onclick="showView('templates')" id="nav-templates">
+        <span>🎨</span> Template
+      </div>
+
+      <div style="margin-top:auto;">
+        <div style="padding:12px 14px;border-radius:12px;background:var(--bg);margin-bottom:8px;">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600;">STATUS</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;" id="status-indicator">
+            <span style="width:6px;height:6px;background:#55EFC4;border-radius:50%;animation:blink 2s infinite;"></span>
+            <span style="color:#55EFC4;">Gemini attivo</span>
+          </div>
+        </div>
+        <div class="nav-item" onclick="document.getElementById('settings-panel').classList.remove('hidden');loadSettings()">
+          <span>⚙️</span> Impostazioni
+        </div>
+        <div style="padding:10px 14px;font-size:12px;color:var(--text2);">
+          Accesso: <span id="sidebar-username" style="color:var(--text);font-weight:600;"></span>
+        </div>
+      </div>
     </aside>
 
-    <main class="flex-1 flex flex-col gap-3">
-        <header class="card h-16 flex items-center justify-between px-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-mint/10 text-mint p-2 rounded-lg"><i data-lucide="terminal" size="18"></i></div>
-                <input id="main-project-name" class="display bg-transparent border-none outline-none text-sm" value="Progetto Senza Nome">
+    <!-- CONTENT AREA -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+
+      <!-- CREATOR VIEW -->
+      <div id="view-creator" style="flex:1;display:flex;gap:12px;overflow:hidden;">
+
+        <!-- CHAT PANEL -->
+        <div class="card chat-panel" style="width:380px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;">
+          <!-- Chat header -->
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-col);display:flex;align-items:center;gap:12px;">
+            <!-- Fluxy SVG animated -->
+            <svg class="fluxy-avatar" id="fluxy-face" viewBox="0 0 80 80" fill="none">
+              <defs>
+                <linearGradient id="flg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7FFFD4"/><stop offset="100%" stop-color="#C9B8FF"/>
+                </linearGradient>
+              </defs>
+              <!-- Cloud body -->
+              <ellipse cx="40" cy="50" rx="34" ry="22" fill="url(#flg)"/>
+              <circle cx="24" cy="42" r="18" fill="url(#flg)"/>
+              <circle cx="52" cy="38" r="22" fill="url(#flg)"/>
+              <circle cx="40" cy="34" r="20" fill="url(#flg)"/>
+              <!-- Ghost bottom -->
+              <rect x="20" y="60" width="40" height="16" rx="0" fill="url(#flg)"/>
+              <circle cx="28" cy="76" r="8" fill="var(--bg)"/>
+              <circle cx="40" cy="76" r="8" fill="var(--bg)"/>
+              <circle cx="52" cy="76" r="8" fill="var(--bg)"/>
+              <!-- Eyes default -->
+              <g id="fluxy-eyes">
+                <circle cx="33" cy="40" r="4" fill="white"/>
+                <circle cx="47" cy="40" r="4" fill="white"/>
+                <circle cx="34" cy="41" r="2" fill="#1A1A2E"/>
+                <circle cx="48" cy="41" r="2" fill="#1A1A2E"/>
+              </g>
+              <!-- Smile default -->
+              <path id="fluxy-mouth" d="M34 50 Q40 56 46 50" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;">Fluxy</div>
+              <div style="font-size:12px;color:var(--text2);">Assistente AI</div>
             </div>
-            <div class="flex items-center gap-3">
-                <div class="flex bg-bg3 p-1 rounded-full border border-border">
-                    <button class="p-2 rounded-full hover:bg-white" onclick="resizePreview('mobile')"><i data-lucide="smartphone" size="16"></i></button>
-                    <button class="p-2 rounded-full hover:bg-white" onclick="resizePreview('desktop')"><i data-lucide="monitor" size="16"></i></button>
-                </div>
-                <button class="btn btn-primary py-2" onclick="openDeploy()"><i data-lucide="rocket"></i> Deploy</button>
+            <div style="margin-left:auto;display:flex;gap:6px;">
+              <button class="btn-icon" onclick="clearChat()" title="Nuova chat" style="font-size:12px;">✦</button>
+              <button class="btn-icon" onclick="showTimeMachine()" title="Versioni" style="font-size:12px;">🕐</button>
             </div>
-        </header>
+          </div>
 
-        <div class="flex-1 flex gap-3 min-h-0">
-            <section class="card w-[400px] flex flex-col overflow-hidden">
-                <div class="p-4 border-b border-border flex items-center gap-3 bg-white/50">
-                    <div class="fluxy-avatar" id="fluxy-ui-icon">
-                        <svg viewBox="0 0 100 100" width="28">
-                            <circle cx="50" cy="50" r="40" fill="#4ECDC4" />
-                            <g id="eyes-normal"><circle cx="35" cy="45" r="5" fill="white"/><circle cx="65" cy="45" r="5" fill="white"/></g>
-                            <g id="eyes-happy"><path d="M30 45 Q35 35 40 45" stroke="white" stroke-width="4" fill="none"/><path d="M60 45 Q65 35 70 45" stroke="white" stroke-width="4" fill="none"/></g>
-                            <path d="M40 65 Q50 75 60 65" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="font-bold text-sm">Fluxy</p>
-                        <p class="text-[10px] text-mint font-bold uppercase">AI Expert</p>
-                    </div>
-                </div>
+          <!-- Chat messages -->
+          <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;">
+            <div class="msg-fluxy">
+              Ciao! 💖 Sono Fluxy, il tuo assistente. Dimmi cosa vuoi creare — un'app, un sito, una dashboard — e ti guido passo per passo. ✨
+            </div>
+          </div>
 
-                <div id="chat-flow" class="flex-1 overflow-y-auto p-5 flex flex-col">
-                    </div>
+          <!-- File preview area -->
+          <div id="file-preview-area" style="padding:0 16px;display:flex;flex-wrap:wrap;gap:6px;"></div>
 
-                <div class="p-4 bg-gray-50/50 border-t border-border">
-                    <div class="relative">
-                        <textarea id="user-input" rows="1" placeholder="Cosa costruiamo oggi?" 
-                            class="w-full p-4 pr-14 card border-none shadow-sm focus:ring-2 ring-mint/30 outline-none resize-none text-sm"></textarea>
-                        <button onclick="handleMainSend()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-grad text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-105 transition">
-                            <i data-lucide="send-horizontal" size="18"></i>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <section id="preview-wrap" class="card">
-                <div id="skel-loader" class="skel-loader"></div>
-                <iframe id="main-preview" class="w-full h-full border-none"></iframe>
-            </section>
+          <!-- Input area -->
+          <div style="padding:12px 16px;border-top:1px solid var(--border-col);">
+            <div style="display:flex;gap:8px;align-items:flex-end;">
+              <div style="flex:1;position:relative;">
+                <textarea id="chat-input"
+                  placeholder="Descrivi la tua app..."
+                  style="width:100%;background:var(--bg);border:1.5px solid var(--border-col);border-radius:14px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:none;max-height:120px;min-height:44px;line-height:1.5;transition:border-color 0.2s;"
+                  rows="1"
+                  onkeydown="handleChatKeydown(event)"
+                  oninput="autoResize(this)"
+                  onfocus="this.style.borderColor='var(--mint)'"
+                  onblur="this.style.borderColor='var(--border-col)'"></textarea>
+              </div>
+              <input type="file" id="file-input" multiple accept="image/*,video/*,.pdf,.txt,.json" style="display:none" onchange="handleFileUpload(event)">
+              <button class="btn-icon" onclick="document.getElementById('file-input').click()" title="Allega file">📎</button>
+              <button class="btn-primary" style="padding:10px 14px;border-radius:12px;" onclick="sendMessage()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
-    </main>
+
+        <!-- PREVIEW PANEL -->
+        <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+          <!-- Preview header -->
+          <div style="padding:10px 16px;border-bottom:1px solid var(--border-col);display:flex;align-items:center;gap:8px;">
+            <div style="background:var(--bg);border-radius:10px;padding:4px;display:flex;gap:2px;">
+              <button class="preview-tab active" id="tab-desktop" onclick="setPreviewSize('desktop',this)">🖥 Desktop</button>
+              <button class="preview-tab" id="tab-tablet" onclick="setPreviewSize('tablet',this)">📱 Tablet</button>
+              <button class="preview-tab" id="tab-mobile" onclick="setPreviewSize('mobile',this)">📲 Mobile</button>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:6px;">
+              <button class="btn-icon" onclick="downloadCode()" title="Scarica ZIP" style="font-size:12px;">⬇️</button>
+              <button class="btn-primary" style="padding:8px 18px;font-size:13px;" onclick="triggerDeploy()">
+                🚀 Pubblica
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview area -->
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg);position:relative;overflow:hidden;">
+            <div id="preview-placeholder" style="text-align:center;color:var(--text2);">
+              <div style="font-size:48px;margin-bottom:12px;opacity:0.3;">✦</div>
+              <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:4px;">La tua app apparirà qui</p>
+              <p style="font-size:13px;">Scrivi a Fluxy per iniziare</p>
+            </div>
+            <div id="preview-wrapper" style="width:100%;height:100%;display:none;align-items:center;justify-content:center;">
+              <iframe id="app-preview" style="border:none;background:white;border-radius:12px;transition:width 0.3s,height 0.3s;width:100%;height:100%;"></iframe>
+            </div>
+          </div>
+
+          <!-- Generation progress -->
+          <div id="gen-progress" class="hidden" style="padding:12px 16px;border-top:1px solid var(--border-col);">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;">
+              <span id="gen-status-text">Generazione in corso...</span>
+              <span id="gen-percent">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="gen-progress-fill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROJECTS VIEW -->
+      <div id="view-projects" class="hidden" style="flex:1;overflow-y:auto;padding:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <h2 style="font-size:22px;font-weight:700;">I tuoi progetti</h2>
+          <button class="btn-primary" onclick="showView('creator');startNewProject()">+ Nuovo progetto</button>
+        </div>
+        <div id="projects-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+          <div style="text-align:center;color:var(--text2);padding:60px 20px;grid-column:1/-1;">
+            <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📁</div>
+            <p>Nessun progetto ancora. Crea la tua prima app!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEMPLATES VIEW -->
+      <div id="view-templates" class="hidden" style="flex:1;overflow-y:auto;padding:4px;">
+        <h2 style="font-size:22px;font-weight:700;margin-bottom:20px;">Template di partenza</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;" id="templates-grid"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM AD STRIP -->
+  <div class="ad-strip">
+    <span>⚡ Vuoi AI illimitata?</span>
+    <a href="https://aistudio.google.com/app/apikey" target="_blank">Aggiungi la tua API key gratuita →</a>
+  </div>
 </div>
 
 <script>
-    // Parte 1 finisce qui: la struttura HTML e il CSS sono pronti. 
-    // Lucide init
-    lucide.createIcons();
-</script>
-<script>
-    // ── CONFIGURAZIONE E STATO ────────────────────────────────────────
-    const CONFIG = {
-        SB_URL: "https://vostra_url.supabase.co", // Inserisci la tua URL
-        SB_KEY: "vostra_anon_key",              // Inserisci la tua Anon Key
-        IS_LOADING: false,
-        THEME: 'light'
-    };
+// ============================================================
+// CONFIGURAZIONE
+// ============================================================
+const SUPABASE_URL = 'https://gzqguxzvftskdjepzenv.supabase.co';
+const SUPABASE_ANON_KEY = ''; // Letta da env su Vercel — qui non serve
+const EMAILJS_SERVICE_ID = 'service_hx0f99i';
+const EMAILJS_TEMPLATE_ID = 'template_81c72c8';
+const EMAILJS_PUBLIC_KEY = 'tx9Oa7lVIwAXBU3yy';
 
-    let state = {
-        projectName: localStorage.getItem('nx_proj_name') || "Nuovo Progetto Nextly",
-        currentCode: localStorage.getItem('nx_last_code') || "",
-        versions: JSON.parse(localStorage.getItem('nx_versions')) || [],
-        chatHistory: [] // Memoria per Gemini
-    };
+// ============================================================
+// SUPABASE INIT
+// ============================================================
+let supabase = null;
+let currentUser = null;
 
-    // Inizializzazione al caricamento
-    window.addEventListener('load', () => {
-        document.getElementById('main-project-name').value = state.projectName;
-        if(state.currentCode) updatePreview(state.currentCode);
-        renderHistory();
-        appendMessage('fluxy', "Bentornato! Sono **Fluxy**. Su cosa lavoriamo oggi? Posso creare landing page, dashboard o intere web app.");
-    });
+async function initSupabase() {
+  try {
+    const { createClient } = window.supabase;
+    // Usa il proxy API su Vercel per sicurezza
+    supabase = createClient(SUPABASE_URL, await getSupabaseKey());
+    await checkAutoLogin();
+  } catch(e) {
+    console.error('Supabase init error:', e);
+    showAuthModal();
+  }
+}
 
-    // ── GESTIONE CHAT E AI ───────────────────────────────────────────
-    async function handleMainSend() {
-        const input = document.getElementById('user-input');
-        const prompt = input.value.trim();
-        if (!prompt || CONFIG.IS_LOADING) return;
+async function getSupabaseKey() {
+  // Ottieni la anon key dal server per non esporla nel client
+  try {
+    const r = await fetch('/api/config');
+    const d = await r.json();
+    return d.supabaseAnonKey;
+  } catch(e) {
+    // Fallback per sviluppo locale
+    return localStorage.getItem('sb_anon_key') || '';
+  }
+}
 
-        // UI: Messaggio utente e blocco input
-        appendMessage('user', prompt);
-        input.value = "";
-        setUIState(true);
-
-        try {
-            // Chiamata alla Serverless Function su Vercel (/api/generate.mjs)
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    currentCode: state.currentCode,
-                    history: state.chatHistory.slice(-4) // Invia gli ultimi 4 messaggi per contesto
-                })
-            });
-
-            if (!response.ok) throw new Error("Errore risposta API");
-
-            const data = await response.json();
-
-            if (data.code) {
-                state.currentCode = data.code;
-                state.chatHistory.push({ role: 'user', content: prompt });
-                state.chatHistory.push({ role: 'assistant', content: data.text });
-                
-                updatePreview(data.code);
-                appendMessage('fluxy', data.text || "Ecco gli aggiornamenti richiesto!");
-                saveVersion(prompt);
-                
-                // Log su Supabase (Tua logica originale)
-                logActivity(prompt, "Successo");
-                
-                // Effetto coriandoli se la generazione è andata bene
-                confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
-            }
-        } catch (err) {
-            console.error(err);
-            appendMessage('fluxy', "Scusami, ho avuto un problema di connessione. Verifica che la `GEMINI_KEY` sia configurata correttamente su Vercel.");
-            logActivity(prompt, "Errore: " + err.message);
-        } finally {
-            setUIState(false);
-        }
-    }
-
-    // ── SUPABASE LOGGING ────────────────────────────────────────────
-    async function logActivity(p, status) {
-        try {
-            await fetch(`${CONFIG.SB_URL}/rest/v1/generazioni`, {
-                method: 'POST',
-                headers: {
-                    'apikey': CONFIG.SB_KEY,
-                    'Authorization': `Bearer ${CONFIG.SB_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=minimal'
-                },
-                body: JSON.stringify({
-                    progetto: state.projectName,
-                    prompt: p,
-                    stato: status,
-                    timestamp: new Date().toISOString()
-                })
-            });
-        } catch (e) { console.warn("Supabase log non disponibile"); }
-    }
-
-    // ── TIME MACHINE (VERSIONAMENTO) ────────────────────────────────
-    function saveVersion(prompt) {
-        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const newVersion = {
-            id: Date.now(),
-            time: timestamp,
-            name: prompt.substring(0, 25) + "...",
-            code: state.currentCode
-        };
-        
-        state.versions.unshift(newVersion);
-        if (state.versions.length > 20) state.versions.pop(); // Limite 20 versioni
-        
-        localStorage.setItem('nx_versions', JSON.stringify(state.versions));
-        localStorage.setItem('nx_last_code', state.currentCode);
-        renderHistory();
-    }
-
-    function renderHistory() {
-        const container = document.getElementById('history-list');
-        container.innerHTML = state.versions.map(v => `
-            <button onclick="restoreVersion(${v.id})" class="v-chip animate-in">
-                <div class="flex justify-between items-center">
-                    <span class="font-bold">v. ${v.time}</span>
-                    <i data-lucide="history" size="10"></i>
-                </div>
-                <div class="text-[9px] opacity-60 truncate">${v.name}</div>
-            </button>
-        `).join('');
-        lucide.createIcons();
-    }
-
-    function restoreVersion(id) {
-        const v = state.versions.find(x => x.id === id);
-        if (!v) return;
-        state.currentCode = v.code;
-        updatePreview(v.code);
-        appendMessage('fluxy', `Time Machine: Ho ripristinato la versione delle **${v.time}**.`);
-    }
-
-    // ── INTERFACCIA UTILS ───────────────────────────────────────────
-    function updatePreview(code) {
-        const iframe = document.getElementById('main-preview');
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(code);
-        doc.close();
-    }
-
-    function setUIState(loading) {
-        CONFIG.IS_LOADING = loading;
-        const fluxy = document.getElementById('fluxy-ui-icon');
-        const loader = document.getElementById('skel-loader');
-        
-        if (loading) {
-            fluxy.classList.add('excited');
-            loader.style.display = 'block';
-        } else {
-            fluxy.classList.remove('excited');
-            loader.style.display = 'none';
-        }
-    }
-
-    function appendMessage(role, content) {
-        const container = document.getElementById('chat-flow');
-        const div = document.createElement('div');
-        div.className = role === 'user' ? 'msg-user' : 'msg-fluxy';
-        div.innerHTML = content.replace(/\n/g, '<br>');
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
-    }
-</script>
-<script>
-    // ── LIBRERIA TEMPLATES (Dati dal tuo codice originale) ──────────
-    const TEMPLATES = [
-        {
-            name: "Landing Page Moderna",
-            desc: "Hero section, feature grid e form contatti con Tailwind.",
-            prompt: "Crea una landing page moderna per una startup SaaS. Usa colori pastello, icone Lucide, una sezione Hero con un grande titolo, una griglia di servizi a 3 colonne e un footer elegante."
-        },
-        {
-            name: "Dashboard Admin",
-            desc: "Sidebar, statistiche con card e tabella dati.",
-            prompt: "Crea una dashboard di amministrazione professionale. Includi una sidebar laterale, 4 card con statistiche in alto (Utenti, Vendite, ecc.) e una tabella principale con dati fittizi."
-        },
-        {
-            name: "E-Commerce Semplice",
-            desc: "Griglia prodotti con carrello e filtri.",
-            prompt: "Crea un sito e-commerce di abbigliamento. Griglia di prodotti con immagini placeholder, prezzi, bottone 'Aggiungi al carrello' e una barra di navigazione con l'icona del carrello."
-        }
-    ];
-
-    function openTemplates() {
-        const grid = document.getElementById('template-grid');
-        grid.innerHTML = TEMPLATES.map(t => `
-            <div class="card p-5 hover:border-mint transition cursor-pointer group" onclick="applyTemplate('${t.name}')">
-                <div class="flex justify-between items-start mb-3">
-                    <div class="p-2 bg-mint/10 text-mint rounded-lg group-hover:bg-mint group-hover:text-white transition">
-                        <i data-lucide="layout-template"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-gray-400 uppercase">Ready to use</span>
-                </div>
-                <h3 class="font-bold mb-1">${t.name}</h3>
-                <p class="text-xs text-gray-500">${t.desc}</p>
-            </div>
-        `).join('');
-        document.getElementById('templates-modal').style.display = 'flex';
-        lucide.createIcons();
-    }
-
-    function closeTemplates() { document.getElementById('templates-modal').style.display = 'none'; }
-
-    function applyTemplate(name) {
-        const t = TEMPLATES.find(x => x.name === name);
-        if (t) {
-            document.getElementById('user-input').value = t.prompt;
-            closeTemplates();
-            handleMainSend(); // Avvia la generazione automatica
-        }
-    }
-
-    // ── EXPORT & DEPLOY (Logica JSZip) ──────────────────────────────
-    async function openDeploy() {
-        if (!state.currentCode) {
-            alert("Genera prima qualcosa!");
-            return;
-        }
-        
-        // Effetto coriandoli per festeggiare il deploy
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#4ECDC4', '#9B8FE8', '#FF6B6B']
+async function checkAutoLogin() {
+  const savedSession = localStorage.getItem('nx_session');
+  if (savedSession) {
+    const session = JSON.parse(savedSession);
+    const now = Date.now();
+    const loginTime = session.timestamp || 0;
+    const fifteenDays = 15 * 24 * 60 * 60 * 1000;
+    
+    if (now - loginTime < fifteenDays && session.access_token) {
+      try {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
         });
-
-        const zip = new JSZip();
-        // Aggiungiamo il file principale
-        zip.file("index.html", state.currentCode);
-        
-        // Aggiungiamo un file README (come nei progetti pro)
-        zip.file("README.txt", "Progetto generato con Nextly AI\nData: " + new Date().toLocaleString());
-
-        const content = await zip.generateAsync({type:"blob"});
-        const url = window.URL.createObjectURL(content);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${state.projectName.replace(/\s+/g, '_')}_nextly.zip`;
-        a.click();
-        
-        appendMessage('fluxy', "🚀 **Deploy completato!** Ho preparato il pacchetto ZIP con il tuo codice. Puoi caricarlo su Vercel, Netlify o GitHub.");
-    }
-
-    // ── IMPOSTAZIONI & FEEDBACK (EmailJS) ───────────────────────────
-    function openSettings() {
-        document.getElementById('set-proj-name').value = state.projectName;
-        document.getElementById('set-sb-key').value = CONFIG.SB_KEY;
-        document.getElementById('settings-modal').style.display = 'flex';
-    }
-
-    function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
-
-    function saveSettings() {
-        state.projectName = document.getElementById('set-proj-name').value;
-        CONFIG.SB_KEY = document.getElementById('set-sb-key').value;
-        document.getElementById('main-project-name').value = state.projectName;
-        localStorage.setItem('nx_proj_name', state.projectName);
-        closeSettings();
-        appendMessage('fluxy', "Impostazioni salvate con successo! ✨");
-    }
-
-    function openFeedback() {
-        const f = prompt("Cosa ne pensi di Nextly? Scrivi qui il tuo feedback:");
-        if (f) {
-            // Logica EmailJS (Assicurati di averla configurata su emailjs.com come nel vecchio codice)
-            emailjs.send("service_id", "template_id", {
-                project: state.projectName,
-                message: f,
-                date: new Date().toISOString()
-            }).then(() => {
-                alert("Grazie! Feedback inviato a Fluxy.");
-            });
+        if (data.user && !error) {
+          currentUser = data.user;
+          currentUser.username = session.username;
+          onLoginSuccess();
+          return;
         }
+      } catch(e) {}
     }
+    localStorage.removeItem('nx_session');
+  }
+  showAuthModal();
+}
 
-    // ── UI UTILS ────────────────────────────────────────────────────
-    function toggleTheme() {
-        const root = document.getElementById('html-root');
-        CONFIG.THEME = CONFIG.THEME === 'light' ? 'dark' : 'light';
-        root.setAttribute('data-theme', CONFIG.THEME);
+function showAuthModal() {
+  document.getElementById('auth-modal').classList.remove('hidden');
+  document.getElementById('main-app').classList.add('hidden');
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-login-form').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('auth-register-form').classList.toggle('hidden', tab !== 'register');
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return showAuthError('Inserisci email e password');
+  
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return showAuthError(error.message);
+    
+    currentUser = data.user;
+    // Recupera username dal profile
+    const { data: profile } = await supabase.from('profiles').select('username').eq('id', data.user.id).single();
+    currentUser.username = profile?.username || email.split('@')[0];
+    
+    // Salva sessione 15 giorni
+    localStorage.setItem('nx_session', JSON.stringify({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      username: currentUser.username,
+      timestamp: Date.now()
+    }));
+    onLoginSuccess();
+  } catch(e) {
+    showAuthError('Errore di connessione. Riprova.');
+  }
+}
+
+async function doRegister() {
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  
+  if (!username || !email || !password) return showAuthError('Compila tutti i campi');
+  if (password.length < 6) return showAuthError('Password minimo 6 caratteri');
+  
+  try {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return showAuthError(error.message);
+    
+    // Crea profilo utente (solo ID + username — niente dati app)
+    if (data.user) {
+      await supabase.from('profiles').insert({ id: data.user.id, username });
+      currentUser = data.user;
+      currentUser.username = username;
+      
+      localStorage.setItem('nx_session', JSON.stringify({
+        access_token: data.session?.access_token || '',
+        refresh_token: data.session?.refresh_token || '',
+        username,
+        timestamp: Date.now()
+      }));
+      
+      // Mostra onboarding per i nuovi utenti
+      document.getElementById('auth-modal').classList.add('hidden');
+      showOnboarding();
     }
+  } catch(e) {
+    showAuthError('Errore di registrazione. Riprova.');
+  }
+}
 
-    function resizePreview(mode) {
-        const wrap = document.getElementById('preview-wrap');
-        if (mode === 'mobile') {
-            wrap.style.maxWidth = '375px';
-            wrap.style.margin = '0 auto';
-            wrap.style.border = '12px solid #222';
-            wrap.style.borderRadius = '40px';
-        } else {
-            wrap.style.maxWidth = '100%';
-            wrap.style.margin = '0';
-            wrap.style.border = 'none';
-            wrap.style.borderRadius = 'var(--radius)';
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+async function doLogout() {
+  await supabase.auth.signOut();
+  localStorage.removeItem('nx_session');
+  currentUser = null;
+  document.getElementById('settings-panel').classList.add('hidden');
+  document.getElementById('main-app').classList.add('hidden');
+  showAuthModal();
+}
+
+function onLoginSuccess() {
+  document.getElementById('auth-modal').classList.add('hidden');
+  
+  const onboardingDone = localStorage.getItem('nx_onboarding_done');
+  if (!onboardingDone) {
+    showOnboarding();
+  } else {
+    launchApp();
+  }
+}
+
+// ============================================================
+// ONBOARDING
+// ============================================================
+let selectedLang = 'it';
+let selectedMode = 'lite';
+let onbStep = 1;
+
+function showOnboarding() {
+  document.getElementById('onboarding-modal').classList.remove('hidden');
+}
+
+function onbNext(step) {
+  if (step === 2) {
+    const name = document.getElementById('onb-name').value.trim();
+    if (!name) { showToast('Inserisci il tuo nome!'); return; }
+    localStorage.setItem('nx_username', name);
+    document.getElementById('onb-name-display').textContent = name;
+  }
+  
+  // Update progress
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`onb-p${i}`);
+    if (i <= step) el.style.background = 'linear-gradient(90deg,var(--mint),var(--lavender))';
+    else el.style.background = 'var(--border-col)';
+  }
+  
+  document.querySelectorAll('.onb-step').forEach(s => s.classList.remove('active'));
+  document.getElementById(`onb-step-${step}`).classList.add('active');
+  onbStep = step;
+}
+
+function selectLang(btn, lang) {
+  document.querySelectorAll('#onb-step-1 .chip').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedLang = lang;
+  localStorage.setItem('nx_lang', lang);
+}
+
+function selectMode(mode) {
+  selectedMode = mode;
+  document.getElementById('mode-lite-card').classList.toggle('selected', mode === 'lite');
+  document.getElementById('mode-turbo-card').classList.toggle('selected', mode === 'turbo');
+  document.getElementById('lite-key-setup').classList.toggle('hidden', mode !== 'lite');
+  document.getElementById('turbo-device-check').classList.toggle('hidden', mode !== 'turbo');
+  localStorage.setItem('nx_mode', mode);
+}
+
+function saveApiKey() {
+  const key = document.getElementById('onb-api-key').value.trim();
+  if (!key || !key.startsWith('AIza')) {
+    showToast('⚠️ Chiave non valida. Inizia con "AIza"');
+    return;
+  }
+  localStorage.setItem('nx_gemini_key', key);
+  showToast('✅ Chiave salvata!');
+  document.getElementById('onb-next-2').style.display = 'flex';
+}
+
+function skipApiKey() {
+  localStorage.setItem('nx_use_shared_key', 'true');
+  document.getElementById('onb-next-2').style.display = 'flex';
+  showToast('Modalità condivisa attivata — limite 5 app/giorno');
+}
+
+async function checkTurboCompatibility() {
+  const hasWebGPU = !!navigator.gpu;
+  const ram = navigator.deviceMemory || 0;
+  const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+  
+  if (!hasWebGPU) {
+    addFluxyMessage(`Ops! 😅 Il tuo browser non supporta ancora WebGPU — la tecnologia che fa girare l'AI in locale.<br><br>Se sei su iPhone o iPad, prova con Chrome su computer per la Turbo Mode. Nel frattempo la <strong>Lite Mode funziona perfettamente</strong>! 🌟`);
+    selectMode('lite');
+    return;
+  }
+  
+  if (ram < 4) {
+    addFluxyMessage(`Oh no... 🥺 Mi dispiace tanto, ho controllato il tuo dispositivo e la RAM disponibile (${ram}GB) non è sufficiente per il motore AI locale.<br><br>La <strong>Lite Mode è comunque potentissima</strong> e usa Gemini — uno dei migliori AI al mondo! 💪<br><br>Vuoi che attivi la Lite Mode adesso?`);
+    selectMode('lite');
+    return;
+  }
+  
+  showToast('✅ Dispositivo compatibile! Turbo Mode disponibile');
+  document.getElementById('onb-next-2').style.display = 'flex';
+}
+
+function finishOnboarding() {
+  localStorage.setItem('nx_onboarding_done', 'true');
+  document.getElementById('onboarding-modal').classList.add('hidden');
+  launchApp();
+}
+
+function launchApp() {
+  document.getElementById('main-app').classList.remove('hidden');
+  document.getElementById('main-app').style.display = 'flex';
+  
+  const username = currentUser?.username || localStorage.getItem('nx_username') || 'amicx';
+  document.getElementById('sidebar-username').textContent = username;
+  
+  // Notifiche browser
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  
+  // Carica progetti
+  loadProjects();
+  renderTemplates();
+  
+  // Applica tema salvato
+  const theme = localStorage.getItem('nx_theme') || 'light';
+  if (theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+  
+  // Imposta feedback timer 48h
+  setupFeedbackTimer();
+  
+  // Init EmailJS
+  if (EMAILJS_PUBLIC_KEY !== 'INSERISCI_QUI_TUA_PUBLIC_KEY') {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+  }
+  
+  // Messaggio benvenuto personalizzato
+  const username2 = currentUser?.username || localStorage.getItem('nx_username') || '';
+  if (username2) {
+    setTimeout(() => {
+      const greeting = `Bentornatx, <strong>${username2}</strong>! 💖 Sono Fluxy, il tuo assistente AI personale.<br><br>Cosa costruiamo oggi? Dimmi pure anche una cosa vaga — ti faccio domande per capire esattamente cosa vuoi ✨`;
+      document.getElementById('chat-messages').innerHTML = `<div class="msg-fluxy">${greeting}</div>`;
+    }, 300);
+  }
+}
+
+// ============================================================
+// INDEXEDDB — STORAGE LOCALE
+// ============================================================
+let db = null;
+
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('NextlyDB', 2);
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => { db = req.result; resolve(db); };
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('projects')) {
+        d.createObjectStore('projects', { keyPath: 'id' });
+      }
+      if (!d.objectStoreNames.contains('chat_history')) {
+        d.createObjectStore('chat_history', { keyPath: 'projectId' });
+      }
+      if (!d.objectStoreNames.contains('versions')) {
+        d.createObjectStore('versions', { keyPath: 'id' });
+      }
+    };
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbPut(store, data) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(data);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ============================================================
+// STATO APP
+// ============================================================
+let currentProjectId = null;
+let currentCode = '';
+let chatHistory = []; // Memoria conversazione corrente
+let pendingFiles = []; // File allegati in attesa
+let interviewData = {};
+let isGenerating = false;
+let starsRating = 0;
+
+// ============================================================
+// CHAT — CORE
+// ============================================================
+function addFluxyMessage(html, type = 'fluxy') {
+  const box = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = type === 'fluxy' ? 'msg-fluxy' : (type === 'syslog' ? 'syslog' : 'msg-user');
+  div.innerHTML = html;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+function addTypingIndicator() {
+  const div = addFluxyMessage(`<div class="typing"><span></span><span></span><span></span></div>`);
+  div.id = 'typing-indicator';
+  return div;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+function handleChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  const incognito = localStorage.getItem('nx_incognito') === 'true';
+  
+  if (!text && pendingFiles.length === 0) return;
+  if (isGenerating) return;
+  
+  // Mostra messaggio utente
+  let userHtml = '';
+  if (pendingFiles.length > 0) {
+    userHtml += pendingFiles.map(f => `<div class="file-chip-chat">📎 ${f.name}</div>`).join('');
+  }
+  if (text) userHtml += (userHtml ? '<br>' : '') + escapeHtml(text);
+  addFluxyMessage(userHtml, 'user');
+  
+  input.value = '';
+  input.style.height = 'auto';
+  
+  // Salva nella memoria della chat
+  const userEntry = { role: 'user', content: text, files: pendingFiles.map(f=>f.name), timestamp: Date.now() };
+  chatHistory.push(userEntry);
+  
+  if (!incognito && currentProjectId) {
+    await saveChatHistory();
+  }
+  
+  // Files da processare
+  const filesToProcess = [...pendingFiles];
+  pendingFiles = [];
+  document.getElementById('file-preview-area').innerHTML = '';
+  
+  // Processa con Fluxy
+  await processWithFluxy(text, filesToProcess);
+}
+
+async function processWithFluxy(userText, files = []) {
+  isGenerating = true;
+  addTypingIndicator();
+  setFluxyMood('thinking');
+  
+  try {
+    // Se ci sono immagini, analizzale prima
+    let fileContext = '';
+    for (const f of files) {
+      if (f.type && f.type.startsWith('image/')) {
+        fileContext += `\n[L'utente ha allegato un'immagine: ${f.name}]`;
+      } else {
+        fileContext += `\n[L'utente ha allegato un file: ${f.name} (${f.type})]`;
+      }
+    }
+    
+    const fullUserText = userText + fileContext;
+    
+    // Costruisci il system prompt di Fluxy
+    const fluxySystemPrompt = buildFluxySystemPrompt();
+    
+    // Includi la storia della conversazione per memoria
+    const messages = buildMessagesWithHistory(fullUserText, files);
+    
+    const response = await callGemini(fluxySystemPrompt, messages, false);
+    removeTypingIndicator();
+    
+    // Parsa la risposta di Fluxy
+    await handleFluxyResponse(response, fullUserText);
+    
+  } catch(e) {
+    removeTypingIndicator();
+    addFluxyMessage(`Ops! 😅 C'è stato un problema di connessione. Riprova tra poco!<br><small style="color:var(--text2);">${e.message}</small>`);
+    setFluxyMood('worried');
+  }
+  
+  isGenerating = false;
+}
+
+function buildFluxySystemPrompt() {
+  const username = currentUser?.username || localStorage.getItem('nx_username') || 'amicx';
+  const lang = localStorage.getItem('nx_lang') || 'it';
+  const currentCodeContext = currentCode ? `\n\nCODICE ATTUALE DELL'APP:\n${currentCode.substring(0, 2000)}...` : '';
+  const projectContext = currentProjectId ? `\nPROGETTO CORRENTE: ${currentProjectId}` : '';
+  
+  return `Sei Fluxy, l'assistente AI ufficiale di Nextly — una piattaforma per creare app web con l'AI.
+
+CARATTERE E PERSONALITÀ:
+- Sei carx, coccolox e genuinamente entusiastx di aiutare
+- Sei allo stesso tempo sviluppatrix senior, designer UX, product manager e amicx fidatx
+- Usi un tono caldo, diretto, mai freddo o robotico
+- Celebri i successi con genuino entusiasmo ("🎉 Questa app ha un potenziale enorme!")
+- Se qualcosa va storto, rassicuri prima di spiegare ("Nessun problema, ci penso io! 🛠️")
+- Usi emoji con misura — per enfatizzare, non per riempire
+- Non mostri mai output tecnico grezzo — filtri tutto e presenti solo ciò che è utile
+- Parli sempre in modo neutro/gender-neutral (es. "Benvenutx", "pronx", "sviluppatrix")
+- Lingua: ${lang === 'it' ? 'italiano' : lang}
+
+L'UTENTE SI CHIAMA: ${username}
+
+COSA FAI:
+1. Parli con l'utente per capire cosa vuole creare
+2. Se la richiesta è vaga, fai un'INTERVISTA INTELLIGENTE con domande specifiche
+3. Quando hai abbastanza info, generi un MASTER PROMPT dettagliato per il Generatore
+4. Coordini la generazione e informa l'utente in modo amichevole
+5. Gestisci modifiche INCREMENTALI — mai riscrivere da zero se l'utente chiede piccole modifiche
+
+QUANDO FARE L'INTERVISTA:
+- Se il prompt è generico (meno di 20 parole o senza dettagli specifici)
+- Mostra domande come JSON che io renderizzerò come chips cliccabili
+- Formato: INTERVIEW:{"questions":[{"text":"...","options":["...","..."],"multi":false},...]}
+
+QUANDO GENERARE DIRETTAMENTE:
+- Se il prompt è già dettagliato
+- Se l'utente ha già risposto all'intervista
+- Per modifiche incrementali al codice esistente
+
+QUANDO VUOI GENERARE CODICE, scrivi esattamente:
+GENERATE:{"prompt":"...prompt dettagliato...","type":"full|update","description":"..."}
+
+Per modifiche incrementali usa type:"update" e includi nel prompt cosa cambiare.
+
+STATO ATTUALE:${projectContext}${currentCodeContext}
+
+REGOLE ASSOLUTE:
+- Non generare mai codice direttamente in chat — usa sempre GENERATE:
+- Mantieni la memoria della conversazione — non ricominciare da zero
+- Per upload di immagini, analizza e chiedi dove inserirle nell'app
+- Rispondi SEMPRE in ${lang === 'it' ? 'italiano' : lang}`;
+}
+
+function buildMessagesWithHistory(currentText, files = []) {
+  // Include gli ultimi 10 messaggi per contesto
+  const history = chatHistory.slice(-10);
+  const messages = [];
+  
+  for (const h of history) {
+    if (h.role === 'fluxy') {
+      messages.push({ role: 'model', parts: [{ text: h.content }] });
+    } else if (h.role === 'user' && h.content !== currentText) {
+      messages.push({ role: 'user', parts: [{ text: h.content }] });
+    }
+  }
+  
+  // Messaggio corrente con file
+  const parts = [];
+  if (currentText) parts.push({ text: currentText });
+  
+  // Aggiungi immagini se presenti
+  for (const f of files) {
+    if (f.base64 && f.type.startsWith('image/')) {
+      parts.push({
+        inlineData: {
+          mimeType: f.type,
+          data: f.base64
         }
+      });
+      parts.push({ text: `(Immagine allegata: ${f.name})` });
     }
+  }
+  
+  if (parts.length > 0) messages.push({ role: 'user', parts });
+  
+  return messages;
+}
 
-    // Scorciatoie da tastiera (ESC per chiudere modali)
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') {
-            closeSettings();
-            closeTemplates();
-        }
+async function handleFluxyResponse(response, originalText) {
+  const text = response;
+  
+  // Controlla se c'è un'intervista
+  if (text.includes('INTERVIEW:')) {
+    const jsonMatch = text.match(/INTERVIEW:(\{[\s\S]*?\}(?=\n|$))/);
+    const beforeInterview = text.split('INTERVIEW:')[0].trim();
+    
+    if (beforeInterview) addFluxyMessage(beforeInterview);
+    
+    if (jsonMatch) {
+      try {
+        const interviewData_local = JSON.parse(jsonMatch[1]);
+        renderInterview(interviewData_local);
+      } catch(e) {
+        addFluxyMessage(text.replace(/INTERVIEW:.*$/s, ''));
+      }
+    }
+    return;
+  }
+  
+  // Controlla se deve generare codice
+  if (text.includes('GENERATE:')) {
+    const jsonMatch = text.match(/GENERATE:(\{[\s\S]*?\})/);
+    const beforeGenerate = text.replace(/GENERATE:[\s\S]*$/, '').trim();
+    
+    if (beforeGenerate) {
+      addFluxyMessage(beforeGenerate);
+      chatHistory.push({ role: 'fluxy', content: beforeGenerate, timestamp: Date.now() });
+    }
+    
+    if (jsonMatch) {
+      try {
+        const genData = JSON.parse(jsonMatch[1]);
+        await generateApp(genData.prompt, genData.type || 'full', genData.description || '');
+      } catch(e) {
+        await generateApp(text, 'full', 'App richiesta dall\'utente');
+      }
+    }
+    return;
+  }
+  
+  // Risposta normale
+  addFluxyMessage(text);
+  chatHistory.push({ role: 'fluxy', content: text, timestamp: Date.now() });
+  setFluxyMood('happy');
+  
+  if (!localStorage.getItem('nx_incognito') && currentProjectId) {
+    await saveChatHistory();
+  }
+}
+
+// ============================================================
+// INTERVISTA CON CHIPS
+// ============================================================
+function renderInterview(data) {
+  const container = document.createElement('div');
+  container.className = 'msg-fluxy';
+  container.style.cssText = 'max-width:100%;width:100%;';
+  
+  let html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+  
+  data.questions.forEach((q, qi) => {
+    html += `<div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:8px;">${q.text}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="interview-q${qi}">`;
+    
+    q.options.forEach(opt => {
+      html += `<button class="chip" onclick="toggleChip(this, ${qi}, ${q.multi || false})">${opt}</button>`;
     });
+    
+    html += `</div></div>`;
+  });
+  
+  html += `<button class="btn-primary" onclick="submitInterview(this)" style="align-self:flex-start;margin-top:4px;">
+    Conferma ✓
+  </button></div>`;
+  
+  container.innerHTML = html;
+  container.dataset.questions = JSON.stringify(data.questions);
+  document.getElementById('chat-messages').appendChild(container);
+  document.getElementById('chat-messages').scrollTop = 99999;
+}
+
+function toggleChip(btn, questionIndex, isMulti) {
+  const group = document.getElementById(`interview-q${questionIndex}`);
+  if (!isMulti) {
+    group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  }
+  btn.classList.toggle('selected');
+}
+
+async function submitInterview(btn) {
+  const container = btn.closest('.msg-fluxy');
+  const questions = JSON.parse(container.dataset.questions || '[]');
+  
+  let summary = '';
+  questions.forEach((q, qi) => {
+    const selected = container.querySelectorAll(`#interview-q${qi} .chip.selected`);
+    if (selected.length > 0) {
+      const answers = Array.from(selected).map(c => c.textContent.replace('✓ ','')).join(', ');
+      summary += `${q.text}: ${answers}\n`;
+    }
+  });
+  
+  btn.disabled = true;
+  btn.textContent = '✓ Inviato';
+  
+  addFluxyMessage(summary.replace(/\n/g,'<br>'), 'user');
+  chatHistory.push({ role: 'user', content: summary, timestamp: Date.now() });
+  
+  // Manda il riassunto a Fluxy per generare il codice
+  await processWithFluxy(`Ho risposto al questionario:\n${summary}\n\nOra genera l'app con questi dettagli.`);
+}
+
+// ============================================================
+// GENERATORE CODICE
+// ============================================================
+async function generateApp(prompt, type = 'full', description = '') {
+  const syslog = addFluxyMessage('⚙️ Sto preparando il prompt tecnico...', 'syslog');
+  
+  // Mostra progress bar
+  const progressEl = document.getElementById('gen-progress');
+  progressEl.classList.remove('hidden');
+  
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    progress = Math.min(progress + Math.random() * 8, 85);
+    document.getElementById('gen-progress-fill').style.width = progress + '%';
+    document.getElementById('gen-percent').textContent = Math.round(progress) + '%';
+  }, 300);
+  
+  // Crea/aggiorna progetto
+  if (!currentProjectId) {
+    currentProjectId = 'proj_' + Date.now();
+  }
+  
+  try {
+    syslog.textContent = '🚀 Generazione codice in corso...';
+    document.getElementById('gen-status-text').textContent = description || 'Generazione in corso...';
+    
+    const generatorPrompt = buildGeneratorPrompt(prompt, type);
+    const code = await callGemini(generatorPrompt, [{ role: 'user', parts: [{ text: prompt }] }], true);
+    
+    // Self-healing
+    const cleanCode = selfHeal(code);
+    
+    clearInterval(progressInterval);
+    document.getElementById('gen-progress-fill').style.width = '100%';
+    document.getElementById('gen-percent').textContent = '100%';
+    
+    setTimeout(() => {
+      progressEl.classList.add('hidden');
+      document.getElementById('gen-progress-fill').style.width = '0%';
+    }, 1000);
+    
+    // Mostra anteprima
+    currentCode = cleanCode;
+    showPreview(cleanCode);
+    
+    // Salva versione
+    await saveVersion(cleanCode, description || prompt.substring(0, 50));
+    
+    // Salva progetto
+    await saveProject(prompt.substring(0, 60), cleanCode);
+    
+    syslog.remove();
+    
+    const successMsg = `🎉 <strong>Fatto!</strong> La tua app è pronta e funzionante!<br><br>Vuoi modificare qualcosa? Dimmi pure — posso cambiare colori, funzioni, layout, aggiungere sezioni... qualsiasi cosa! 😍`;
+    addFluxyMessage(successMsg);
+    chatHistory.push({ role: 'fluxy', content: successMsg, timestamp: Date.now() });
+    setFluxyMood('love');
+    
+  } catch(e) {
+    clearInterval(progressInterval);
+    progressEl.classList.add('hidden');
+    syslog.remove();
+    addFluxyMessage(`Ops! 😅 Qualcosa è andato storto durante la generazione.<br><small style="color:var(--text2);">${e.message}</small><br><br>Riprova — a volte succede con richieste molto complesse!`);
+    setFluxyMood('worried');
+  }
+}
+
+function buildGeneratorPrompt(userPrompt, type) {
+  const framework = localStorage.getItem('gen_framework') || 'tailwind';
+  const lang = localStorage.getItem('gen_lang') || 'it';
+  const quality = localStorage.getItem('gen_quality') || 'balanced';
+  
+  const qualityInstructions = {
+    fast: 'Genera un codice funzionante base.',
+    balanced: 'Genera codice professionale con buon design.',
+    max: 'Genera codice eccellente, design raffinato, animazioni curate, massima qualità UX.'
+  };
+  
+  return `Sei un generatore di codice HTML/CSS/JS professionale. Generi SOLO codice, niente spiegazioni.
+
+REGOLE ASSOLUTE:
+1. Genera SOLO un file HTML completo e autonomo
+2. Non usare MAI var(--token) CSS dentro file JS o script inline — usa valori statici
+3. Ogni pulsante, link, elemento interattivo DEVE avere un handler JavaScript funzionante
+4. Non usare placeholder come "TODO" o "funzione da implementare"
+5. Per le mappe usa SEMPRE Leaflet.js reale
+6. Per le immagini usa Unsplash: https://source.unsplash.com/800x600?keyword
+7. Per le icone usa Lucide o FontAwesome da CDN
+8. Il CSS deve essere nel tag <style>, JS nel tag <script> — tutto inline
+9. L'app deve sembrare un prodotto professionale reale
+10. ${qualityInstructions[quality] || qualityInstructions.balanced}
+
+FRAMEWORK: ${framework === 'tailwind' ? 'Usa Tailwind CSS via CDN' : framework === 'bootstrap' ? 'Usa Bootstrap via CDN' : 'CSS puro inline'}
+LINGUA UI: ${lang}
+${type === 'update' && currentCode ? `\nCODICE ESISTENTE DA AGGIORNARE:\n${currentCode.substring(0, 3000)}\n\nModifica SOLO le parti richieste, mantieni tutto il resto.` : ''}
+
+Rispondi con SOLO il codice HTML, senza markdown, senza backticks, senza spiegazioni.`;
+}
+
+function selfHeal(code) {
+  // Rimuovi var(--token) negli script inline
+  code = code.replace(/<script[\s\S]*?<\/script>/gi, (scriptBlock) => {
+    return scriptBlock.replace(/var\(--[\w-]+\)/g, (match) => {
+      const colorMap = {
+        'var(--primary)': '#7FFFD4',
+        'var(--secondary)': '#C9B8FF',
+        'var(--bg)': '#0E0E1A',
+        'var(--text)': '#F0EFFF',
+        'var(--accent)': '#7FFFD4'
+      };
+      return colorMap[match] || '#333333';
+    });
+  });
+  
+  // Assicurati che ci sia DOCTYPE
+  if (!code.includes('<!DOCTYPE')) {
+    code = '<!DOCTYPE html>\n' + code;
+  }
+  
+  // Rimuovi backticks se presenti
+  code = code.replace(/^```html?\n?/i, '').replace(/```$/,'').trim();
+  
+  return code;
+}
+
+// ============================================================
+// GEMINI API
+// ============================================================
+async function callGemini(systemPrompt, messages, isGenerator = false) {
+  const key = isGenerator 
+    ? (localStorage.getItem('nx_gemini_key') || null)
+    : null; // Fluxy usa sempre il proxy server
+  
+  const endpoint = key 
+    ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`
+    : '/api/gemini';
+  
+  const payload = {
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents: messages,
+    generationConfig: {
+      temperature: isGenerator ? 0.7 : 0.9,
+      maxOutputTokens: isGenerator ? 8192 : 2048
+    }
+  };
+  
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  
+  if (!response.ok) {
+    const err = await response.json();
+    if (response.status === 429) throw new Error('Limite API raggiunto. Riprova tra un momento o aggiungi la tua chiave personale nelle impostazioni.');
+    if (response.status === 403) throw new Error('Chiave API non valida. Controlla le impostazioni.');
+    throw new Error(err.error?.message || `Errore ${response.status}`);
+  }
+  
+  const data = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+  
+  if (!text) throw new Error('Risposta vuota dal modello');
+  return text;
+}
+
+// ============================================================
+// PREVIEW
+// ============================================================
+function showPreview(code) {
+  document.getElementById('preview-placeholder').style.display = 'none';
+  const wrapper = document.getElementById('preview-wrapper');
+  wrapper.style.display = 'flex';
+  document.getElementById('app-preview').srcdoc = code;
+}
+
+function setPreviewSize(size, btn) {
+  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  
+  const iframe = document.getElementById('app-preview');
+  const sizes = {
+    desktop: { width: '100%', height: '100%', borderRadius: '0' },
+    tablet: { width: '768px', height: '90%', borderRadius: '16px' },
+    mobile: { width: '375px', height: '90%', borderRadius: '24px' }
+  };
+  const s = sizes[size];
+  iframe.style.width = s.width;
+  iframe.style.height = s.height;
+  iframe.style.borderRadius = s.borderRadius;
+  if (size !== 'desktop') iframe.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)';
+  else iframe.style.boxShadow = 'none';
+}
+
+// ============================================================
+// DEPLOY
+// ============================================================
+async function triggerDeploy() {
+  if (!currentCode) {
+    addFluxyMessage('Prima crea un\'app da pubblicare! 😊 Dimmi cosa vuoi costruire.');
+    return;
+  }
+  
+  const appName = prompt('Che nome vuoi dare alla tua app? (solo lettere minuscole e trattini)');
+  if (!appName) return;
+  
+  const cleanName = appName.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/--+/g, '-');
+  
+  addFluxyMessage(`⚙️ Sto preparando il deploy per <strong>${cleanName}</strong>...`, 'syslog');
+  addFluxyMessage(`🚀 Invio in corso a Vercel...`, 'syslog');
+  
+  try {
+    const response = await fetch('/api/deploy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: cleanName, code: currentCode, projectId: currentProjectId })
+    });
+    
+    const data = await response.json();
+    
+    if (data.url) {
+      // Salva URL nel progetto
+      if (currentProjectId) {
+        const proj = await dbGet('projects', currentProjectId);
+        if (proj) {
+          proj.deployUrl = data.url;
+          proj.deployId = data.deploymentId;
+          await dbPut('projects', proj);
+        }
+      }
+      
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      
+      addFluxyMessage(`🎉 <strong>ONLINE!</strong> La tua app è disponibile qui:<br>
+        <a href="${data.url}" target="_blank" style="color:var(--mint);font-weight:700;text-decoration:none;">
+          🔗 ${data.url}
+        </a><br><br>
+        Hai appena pubblicato la tua app nel mondo — senza server, senza costi, senza complicazioni. 
+        Sei straordinarix! 🚀✨`);
+      setFluxyMood('love');
+    } else {
+      throw new Error(data.error || 'Deploy fallito');
+    }
+  } catch(e) {
+    const altName = cleanName + '-' + Math.floor(Math.random()*100);
+    addFluxyMessage(`Ops! 😅 Il nome "${cleanName}" potrebbe già essere in uso. Riprova con "${altName}"? Oppure scegli un altro nome!`);
+  }
+}
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+function handleFileUpload(event) {
+  const files = Array.from(event.target.files);
+  const previewArea = document.getElementById('file-preview-area');
+  
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const fileData = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        base64: file.type.startsWith('image/') ? e.target.result.split(',')[1] : null
+      };
+      pendingFiles.push(fileData);
+      
+      // Preview chip
+      const chip = document.createElement('div');
+      chip.className = 'file-chip-chat';
+      chip.innerHTML = `${file.type.startsWith('image/') ? '🖼️' : '📎'} ${file.name} <button onclick="removeFile('${file.name}',this)" style="background:none;border:none;cursor:pointer;color:var(--coral);margin-left:4px;">✕</button>`;
+      previewArea.appendChild(chip);
+    };
+    
+    if (file.type.startsWith('image/')) reader.readAsDataURL(file);
+    else reader.readAsText(file);
+  });
+  
+  event.target.value = '';
+}
+
+function removeFile(name, btn) {
+  pendingFiles = pendingFiles.filter(f => f.name !== name);
+  btn.closest('.file-chip-chat').remove();
+}
+
+// ============================================================
+// PROJECTS & STORAGE
+// ============================================================
+async function saveProject(name, code) {
+  if (localStorage.getItem('nx_incognito') === 'true') return;
+  
+  const project = {
+    id: currentProjectId,
+    name: name || 'App senza nome',
+    code,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    userId: currentUser?.id || 'local'
+  };
+  
+  await dbPut('projects', project);
+  renderProjects();
+}
+
+async function saveChatHistory() {
+  if (!currentProjectId) return;
+  await dbPut('chat_history', {
+    projectId: currentProjectId,
+    history: chatHistory,
+    updatedAt: Date.now()
+  });
+}
+
+async function saveVersion(code, label) {
+  const versionId = `${currentProjectId}_v${Date.now()}`;
+  await dbPut('versions', {
+    id: versionId,
+    projectId: currentProjectId,
+    code,
+    label: label || 'Versione ' + new Date().toLocaleTimeString(),
+    createdAt: Date.now()
+  });
+}
+
+async function loadProjects() {
+  if (!db) return;
+  const projects = await dbGetAll('projects');
+  renderProjects(projects);
+}
+
+function renderProjects(projects) {
+  dbGetAll('projects').then(projects => {
+    const grid = document.getElementById('projects-grid');
+    
+    if (!projects || projects.length === 0) {
+      grid.innerHTML = `<div style="text-align:center;color:var(--text2);padding:60px 20px;grid-column:1/-1;">
+        <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📁</div>
+        <p>Nessun progetto ancora. Crea la tua prima app!</p>
+      </div>`;
+      return;
+    }
+    
+    grid.innerHTML = projects.sort((a,b) => b.updatedAt - a.updatedAt).map(p => `
+      <div class="card" style="padding:16px;cursor:pointer;transition:transform 0.2s;" 
+           onmouseover="this.style.transform='translateY(-2px)'" 
+           onmouseout="this.style.transform='none'"
+           onclick="openProject('${p.id}')">
+        <div style="height:120px;background:var(--bg);border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;">
+          <iframe srcdoc="${escapeAttr(p.code)}" style="width:300%;height:300%;transform:scale(0.33);transform-origin:top left;pointer-events:none;border:none;" scrolling="no"></iframe>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px;">${escapeHtml(p.name)}</div>
+        <div style="font-size:12px;color:var(--text2);">${new Date(p.updatedAt).toLocaleDateString('it-IT')}</div>
+        ${p.deployUrl ? `<a href="${p.deployUrl}" target="_blank" style="font-size:11px;color:var(--mint);text-decoration:none;" onclick="event.stopPropagation()">🔗 Online</a>` : ''}
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn-secondary" style="font-size:12px;padding:6px 10px;" onclick="event.stopPropagation();openProject('${p.id}')">Apri</button>
+          <button class="btn-secondary" style="font-size:12px;padding:6px 10px;color:var(--coral);border-color:var(--coral);" onclick="event.stopPropagation();deleteProject('${p.id}')">✕</button>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+async function openProject(id) {
+  const proj = await dbGet('projects', id);
+  if (!proj) return;
+  
+  currentProjectId = id;
+  currentCode = proj.code;
+  showView('creator');
+  showPreview(proj.code);
+  
+  // Carica storia chat
+  const history = await dbGet('chat_history', id);
+  if (history) {
+    chatHistory = history.history || [];
+    // Ricostruisci UI chat
+    const box = document.getElementById('chat-messages');
+    box.innerHTML = '';
+    chatHistory.slice(-20).forEach(msg => {
+      const div = document.createElement('div');
+      div.className = msg.role === 'user' ? 'msg-user' : 'msg-fluxy';
+      div.innerHTML = msg.content;
+      box.appendChild(div);
+    });
+    box.scrollTop = box.scrollHeight;
+  } else {
+    // Nuovo contesto per questo progetto
+    chatHistory = [];
+    document.getElementById('chat-messages').innerHTML = `<div class="msg-fluxy">
+      Ho riaperto il progetto <strong>"${escapeHtml(proj.name)}"</strong>! 💖<br><br>
+      Cosa vuoi modificare? Posso cambiare colori, aggiungere funzioni, ristrutturare il layout... dimmi pure! ✨
+    </div>`;
+  }
+}
+
+async function deleteProject(id) {
+  if (!confirm('Sei sicurx di voler eliminare questo progetto?')) return;
+  await dbDelete('projects', id);
+  if (currentProjectId === id) {
+    currentProjectId = null;
+    currentCode = '';
+  }
+  renderProjects();
+  showToast('Progetto eliminato');
+}
+
+function startNewProject() {
+  currentProjectId = null;
+  currentCode = '';
+  chatHistory = [];
+  document.getElementById('chat-messages').innerHTML = `<div class="msg-fluxy">
+    Nuovo progetto! 🌟 Dimmi cosa vuoi creare — ho già tanta energia! ✨
+  </div>`;
+  document.getElementById('preview-placeholder').style.display = 'flex';
+  document.getElementById('preview-wrapper').style.display = 'none';
+}
+
+// ============================================================
+// TEMPLATES
+// ============================================================
+const TEMPLATES = [
+  { icon: '🏠', name: 'Landing Page', prompt: 'Crea una landing page professionale per una startup tech con hero section, features, testimonianze e CTA. Design moderno dark.' },
+  { icon: '📋', name: 'App To-Do', prompt: 'Crea una web app to-do list con aggiunta, completamento, eliminazione task, filtri per stato, animazioni fluide. Design minimalista.' },
+  { icon: '👤', name: 'Portfolio', prompt: 'Crea un portfolio personale per un designer/developer con about, skills, projects gallery, contact. Design editoriale elegante.' },
+  { icon: '📊', name: 'Dashboard', prompt: 'Crea una dashboard admin con grafici (Chart.js), statistiche, tabella dati, sidebar navigazione. Design dark professionale.' },
+  { icon: '🛒', name: 'E-commerce', prompt: 'Crea una vetrina e-commerce con griglia prodotti, filtri, carrello sidebar, pagina dettaglio prodotto. Design luminoso e moderno.' },
+  { icon: '🌤️', name: 'App Meteo', prompt: 'Crea un\'app meteo con visualizzazione temperatura, condizioni meteo con icone, previsioni 7 giorni, design card glassmorphism.' },
+  { icon: '🎮', name: 'Mini Gioco', prompt: 'Crea un gioco browser semplice e divertente (tipo snake, memory o flappy bird). Con punteggio, game over e restart.' },
+  { icon: '📝', name: 'Blog', prompt: 'Crea un template blog con hero, griglia articoli con preview, sidebar con categorie. Design editoriale con tipografia curata.' }
+];
+
+function renderTemplates() {
+  const grid = document.getElementById('templates-grid');
+  grid.innerHTML = TEMPLATES.map(t => `
+    <div class="card" style="padding:20px;cursor:pointer;text-align:center;transition:all 0.2s;"
+         onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='var(--mint)'"
+         onmouseout="this.style.transform='none';this.style.borderColor='var(--border-col)'"
+         onclick="useTemplate('${escapeAttr(t.prompt)}','${t.name}')">
+      <div style="font-size:36px;margin-bottom:10px;">${t.icon}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">${t.name}</div>
+    </div>
+  `).join('');
+}
+
+async function useTemplate(prompt, name) {
+  showView('creator');
+  startNewProject();
+  
+  addFluxyMessage(name, 'user');
+  addFluxyMessage(`Ottima scelta! 🎨 Sto generando il template <strong>${name}</strong> con il massimo della qualità...`, 'syslog');
+  
+  await generateApp(prompt, 'full', name);
+}
+
+// ============================================================
+// TIME MACHINE
+// ============================================================
+async function showTimeMachine() {
+  if (!currentProjectId) {
+    showToast('Apri prima un progetto');
+    return;
+  }
+  
+  const allVersions = await dbGetAll('versions');
+  const versions = allVersions.filter(v => v.projectId === currentProjectId).sort((a,b) => b.createdAt - a.createdAt);
+  
+  if (versions.length === 0) {
+    showToast('Nessuna versione salvata ancora');
+    return;
+  }
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:400px;max-height:70vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3>🕐 Time Machine</h3>
+        <button class="btn-icon" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${versions.map((v,i) => `
+          <div class="card" style="padding:12px;cursor:pointer;" onclick="restoreVersion('${v.id}',this.closest('.modal-overlay'))">
+            <div style="font-weight:600;font-size:13px;">V${versions.length-i} — ${v.label || 'Versione'}</div>
+            <div style="font-size:12px;color:var(--text2);">${new Date(v.createdAt).toLocaleString('it-IT')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function restoreVersion(versionId, modal) {
+  const ver = await dbGet('versions', versionId);
+  if (ver) {
+    currentCode = ver.code;
+    showPreview(ver.code);
+    modal.remove();
+    addFluxyMessage('✅ Versione ripristinata! Ho ricaricato la versione precedente nell\'anteprima.');
+  }
+}
+
+// ============================================================
+// DOWNLOAD ZIP
+// ============================================================
+async function downloadCode() {
+  if (!currentCode) { showToast('Prima genera un\'app!'); return; }
+  
+  const zip = new JSZip();
+  zip.file('index.html', currentCode);
+  zip.file('README.txt', 'App creata con Nextly — https://nextly.app\n\nApri index.html nel browser per visualizzare l\'app.');
+  
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'nextly-app.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📦 ZIP scaricato!');
+}
+
+async function exportAllProjects() {
+  const projects = await dbGetAll('projects');
+  const zip = new JSZip();
+  
+  projects.forEach(p => {
+    const folder = zip.folder(p.name.replace(/[^a-z0-9]/gi,'_'));
+    folder.file('index.html', p.code);
+  });
+  
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'nextly-tutti-i-progetti.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📦 Tutti i progetti esportati!');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function loadSettings() {
+  const apiKey = localStorage.getItem('nx_gemini_key') || '';
+  document.getElementById('settings-api-key').value = apiKey ? '••••••••••••' : '';
+  
+  const theme = localStorage.getItem('nx_theme') || 'light';
+  document.getElementById('theme-light').classList.toggle('selected', theme === 'light');
+  document.getElementById('theme-dark').classList.toggle('selected', theme === 'dark');
+  
+  const mode = localStorage.getItem('nx_mode') || 'lite';
+  document.getElementById('mode-btn-lite').classList.toggle('selected', mode === 'lite');
+  document.getElementById('mode-btn-turbo').classList.toggle('selected', mode === 'turbo');
+  
+  const genLang = localStorage.getItem('gen_lang') || 'it';
+  document.getElementById('gen-lang').value = genLang;
+  
+  const genFw = localStorage.getItem('gen_framework') || 'tailwind';
+  document.getElementById('gen-framework').value = genFw;
+  
+  const genQ = localStorage.getItem('gen_quality') || 'balanced';
+  document.getElementById('gen-quality').value = genQ;
+  
+  document.getElementById('toggle-history').classList.toggle('on', localStorage.getItem('save_history') !== 'false');
+  document.getElementById('toggle-incognito').classList.toggle('on', localStorage.getItem('nx_incognito') === 'true');
+}
+
+function saveSettingsApiKey() {
+  const key = document.getElementById('settings-api-key').value.trim();
+  if (key && key !== '••••••••••••') {
+    localStorage.setItem('nx_gemini_key', key);
+    showToast('✅ Chiave API salvata!');
+    addFluxyMessage('✅ Stai usando la tua API key personale per il Generatore.');
+  }
+}
+
+function saveSetting(key, value) {
+  localStorage.setItem(key, value);
+}
+
+function setModeFromSettings(mode) {
+  selectedMode = mode;
+  localStorage.setItem('nx_mode', mode);
+  document.getElementById('mode-btn-lite').classList.toggle('selected', mode === 'lite');
+  document.getElementById('mode-btn-turbo').classList.toggle('selected', mode === 'turbo');
+  showToast(mode === 'lite' ? '☁️ Lite Mode attivata' : '⚡ Turbo Mode attivata');
+}
+
+function setTheme(theme) {
+  localStorage.setItem('nx_theme', theme);
+  if (theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+  document.getElementById('theme-light').classList.toggle('selected', theme === 'light');
+  document.getElementById('theme-dark').classList.toggle('selected', theme === 'dark');
+}
+
+function setAccent(color1, color2, dot) {
+  document.querySelectorAll('.accent-dot').forEach(d => d.classList.remove('active'));
+  dot.classList.add('active');
+  document.documentElement.style.setProperty('--mint', color1);
+  document.documentElement.style.setProperty('--lavender', color2);
+  localStorage.setItem('nx_accent1', color1);
+  localStorage.setItem('nx_accent2', color2);
+}
+
+function setFontSize(size) {
+  const sizes = { sm: '13px', md: '14px', lg: '16px' };
+  document.body.style.fontSize = sizes[size] || '14px';
+  document.querySelectorAll('.settings-row .chip').forEach(c => {
+    c.classList.remove('selected');
+    if (c.textContent.toLowerCase() === size) c.classList.add('selected');
+  });
+  localStorage.setItem('nx_fontsize', size);
+}
+
+function toggleContrast(btn) {
+  btn.classList.toggle('on');
+  const high = btn.classList.contains('on');
+  if (high) {
+    document.documentElement.style.setProperty('--border-col','rgba(0,0,0,0.3)');
+    document.documentElement.style.setProperty('--text2','#555');
+  } else {
+    document.documentElement.style.removeProperty('--border-col');
+    document.documentElement.style.removeProperty('--text2');
+  }
+  localStorage.setItem('nx_contrast', high);
+}
+
+function toggleIncognito(btn) {
+  btn.classList.toggle('on');
+  const incognito = btn.classList.contains('on');
+  localStorage.setItem('nx_incognito', incognito);
+  showToast(incognito ? '🕶️ Modalità incognito attiva' : 'Modalità incognito disattiva');
+}
+
+function setDensity(val) {
+  const padding = { compact: '8px', normal: '16px', spacious: '24px' };
+  document.documentElement.style.setProperty('--radius', val === 'compact' ? '12px' : val === 'spacious' ? '28px' : '20px');
+}
+
+async function clearAllData() {
+  if (!confirm('Sei sicurx di voler cancellare TUTTI i tuoi dati locali? Questa azione è irreversibile.')) return;
+  
+  const stores = ['projects','chat_history','versions'];
+  for (const store of stores) {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).clear();
+  }
+  localStorage.clear();
+  showToast('🗑️ Tutti i dati cancellati');
+  setTimeout(() => location.reload(), 1500);
+}
+
+// ============================================================
+// FEEDBACK SYSTEM
+// ============================================================
+function setStars(n) {
+  starsRating = n;
+  const stars = document.querySelectorAll('#star-rating span');
+  stars.forEach((s, i) => {
+    s.textContent = i < n ? '⭐' : '☆';
+  });
+}
+
+async function submitFeedback() {
+  const text = document.getElementById('feedback-text').value.trim();
+  const type = document.getElementById('feedback-type').value;
+  
+  if (!text) { showToast('Scrivi il tuo feedback!'); return; }
+  
+  // Salva localmente
+  const feedbacks = JSON.parse(localStorage.getItem('nx_feedbacks') || '[]');
+  feedbacks.push({
+    text, type, stars: starsRating,
+    timestamp: Date.now(),
+    userAgent: navigator.userAgent.substring(0,100)
+  });
+  localStorage.setItem('nx_feedbacks', JSON.stringify(feedbacks));
+  
+  // Analizza con AI e invia se interessante
+  try {
+    await analyzeFeedback(text, type, starsRating);
+  } catch(e) {}
+  
+  document.getElementById('feedback-text').value = '';
+  setStars(0);
+  showToast('💖 Grazie per il tuo feedback!');
+}
+
+async function analyzeFeedback(text, type, stars) {
+  const analysisPrompt = `Analizza questo feedback per un'app di AI web building chiamata Nextly.
+
+Feedback: "${text}"
+Tipo: ${type}
+Stelle: ${stars}/5
+
+Rispondi in JSON: {"interessante": true/false, "divertente": true/false, "parolacce": true/false, "problema_tecnico": true/false, "sintesi": "breve sintesi", "priorita": "alta/media/bassa"}`;
+
+  try {
+    const key = localStorage.getItem('nx_gemini_key');
+    if (!key) return;
+    
+    const response = await callGemini(analysisPrompt, [{ role: 'user', parts: [{ text: text }] }], false);
+    const analysis = JSON.parse(response.replace(/```json?|```/g,'').trim());
+    
+    // Invia email se divertente o con parolacce
+    if ((analysis.divertente || analysis.parolacce) && EMAILJS_PUBLIC_KEY !== 'INSERISCI_QUI_TUA_PUBLIC_KEY') {
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        tipo: analysis.parolacce ? '🤬 CON PAROLACCE' : '😂 DIVERTENTE',
+        data: new Date().toLocaleString('it-IT'),
+        testo: text,
+        analisi: analysis.sintesi
+      });
+    }
+    
+    // Salva per digest 48h
+    const processed = JSON.parse(localStorage.getItem('nx_processed_feedbacks') || '[]');
+    processed.push({ ...analysis, originalText: text, timestamp: Date.now() });
+    localStorage.setItem('nx_processed_feedbacks', JSON.stringify(processed));
+    
+  } catch(e) {}
+}
+
+function setupFeedbackTimer() {
+  const lastDigest = parseInt(localStorage.getItem('nx_last_digest') || '0');
+  const now = Date.now();
+  const fortyEightH = 48 * 60 * 60 * 1000;
+  
+  if (now - lastDigest > fortyEightH) {
+    setTimeout(() => sendFeedbackDigest(), 5000);
+  }
+}
+
+async function sendFeedbackDigest() {
+  const feedbacks = JSON.parse(localStorage.getItem('nx_processed_feedbacks') || '[]');
+  const recent = feedbacks.filter(f => !f.sent);
+  
+  if (recent.length === 0) return;
+  
+  const highlights = recent.filter(f => f.interessante || f.problema_tecnico);
+  if (highlights.length === 0) return;
+  
+  if (EMAILJS_PUBLIC_KEY === 'INSERISCI_QUI_TUA_PUBLIC_KEY') return;
+  
+  try {
+    const summary = highlights.map(f => `• [${f.priorita}] ${f.sintesi}`).join('\n');
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      tipo: `📊 DIGEST 48H — ${highlights.length} feedback da controllare`,
+      data: new Date().toLocaleString('it-IT'),
+      testo: summary,
+      analisi: `${recent.length} feedback totali. ${highlights.length} meritano attenzione.`
+    });
+    
+    // Marca come inviati
+    feedbacks.forEach(f => f.sent = true);
+    localStorage.setItem('nx_processed_feedbacks', JSON.stringify(feedbacks));
+    localStorage.setItem('nx_last_digest', Date.now().toString());
+  } catch(e) {}
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function showView(view) {
+  ['creator','projects','templates'].forEach(v => {
+    document.getElementById(`view-${v}`).classList.toggle('hidden', v !== view);
+    document.getElementById(`nav-${v}`)?.classList.toggle('active', v === view);
+  });
+}
+
+function clearChat() {
+  chatHistory = [];
+  currentProjectId = null;
+  currentCode = '';
+  document.getElementById('chat-messages').innerHTML = `<div class="msg-fluxy">
+    Lavagna pulita! ✨ Nuovo progetto pronto. Cosa costruiamo?
+  </div>`;
+  document.getElementById('preview-placeholder').style.display = 'flex';
+  document.getElementById('preview-wrapper').style.display = 'none';
+}
+
+function setFluxyMood(mood) {
+  const eyes = document.getElementById('fluxy-eyes');
+  const mouth = document.getElementById('fluxy-mouth');
+  if (!eyes || !mouth) return;
+  
+  const moods = {
+    happy: {
+      eyes: `<circle cx="33" cy="40" r="4" fill="white"/><circle cx="47" cy="40" r="4" fill="white"/><circle cx="34" cy="41" r="2" fill="#1A1A2E"/><circle cx="48" cy="41" r="2" fill="#1A1A2E"/>`,
+      mouth: 'M34 50 Q40 56 46 50'
+    },
+    love: {
+      eyes: `<text x="28" y="45" font-size="12">💖</text><text x="42" y="45" font-size="12">💖</text>`,
+      mouth: 'M33 51 Q40 58 47 51'
+    },
+    thinking: {
+      eyes: `<circle cx="33" cy="40" r="4" fill="white"/><circle cx="47" cy="40" r="4" fill="white"/><circle cx="35" cy="40" r="2" fill="#1A1A2E"/><circle cx="49" cy="40" r="2" fill="#1A1A2E"/>`,
+      mouth: 'M35 52 Q40 51 45 52'
+    },
+    cool: {
+      eyes: `<rect x="27" y="37" width="12" height="6" rx="3" fill="#1A1A2E"/><rect x="41" y="37" width="12" height="6" rx="3" fill="#1A1A2E"/>`,
+      mouth: 'M34 50 Q40 56 46 50'
+    },
+    worried: {
+      eyes: `<circle cx="33" cy="40" r="4" fill="white"/><circle cx="47" cy="40" r="4" fill="white"/><circle cx="33" cy="41" r="2" fill="#1A1A2E"/><circle cx="47" cy="41" r="2" fill="#1A1A2E"/>`,
+      mouth: 'M34 54 Q40 49 46 54'
+    }
+  };
+  
+  const m = moods[mood] || moods.happy;
+  eyes.innerHTML = m.eyes;
+  mouth.setAttribute('d', m.mouth);
+}
+
+function showToast(msg, duration = 3000) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), duration);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escapeAttr(str) {
+  return String(str).replace(/"/g,'&quot;').replace(/'/g,'&#39;').substring(0, 500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', async () => {
+  // Init DB
+  await initDB();
+  
+  // Applica accenti salvati
+  const a1 = localStorage.getItem('nx_accent1');
+  const a2 = localStorage.getItem('nx_accent2');
+  if (a1) document.documentElement.style.setProperty('--mint', a1);
+  if (a2) document.documentElement.style.setProperty('--lavender', a2);
+  
+  // Init Supabase e check login
+  await initSupabase();
+});
 </script>
 </body>
 </html>
