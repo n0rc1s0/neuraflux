@@ -808,13 +808,16 @@ RUOLO NEL SISTEMA:
 - Brief vago = app mediocre. Brief dettagliato = app straordinaria.
 
 FLUSSO:
-STEP 1 — Se richiesta vaga → INTERVISTA (max 4 domande contestuali)
-Formato chips: INTERVIEW:{"questions":[{"text":"?","options":["A","B","C"],"multi":false},...]}
+STEP 1 — Se richiesta vaga → INTERVISTA OBBLIGATORIA con chips cliccabili.
+REGOLA CRITICA: Le domande DEVONO essere in questo formato JSON esatto. NON scrivere mai le domande come testo libero o lista numerata. SEMPRE e SOLO questo formato:
+INTERVIEW:{"questions":[{"text":"Domanda 1?","options":["Opzione A","Opzione B","Opzione C"],"multi":false},{"text":"Domanda 2?","options":["Sì","No","Forse"],"multi":true}]}
+Massimo 4 domande. Opzioni brevi (max 3 parole ciascuna).
+ATTENZIONE: Se non usi esattamente questo formato le chips non appariranno mai.
 
-STEP 2 — Quando hai info sufficienti → GENERA con MASTER PROMPT ultra-dettagliato (min 200 parole) che include:
-A) Tipo/scopo app  B) Palette colori esatta (#hex)  C) Tutte le sezioni  D) Funzionalità interattive  E) Contenuti reali  F) Animazioni  G) Responsive
+STEP 2 — Quando hai info sufficienti → GENERA con brief dettagliato (max 400 parole) che include:
+A) Tipo/scopo  B) Palette colori (#hex)  C) Sezioni principali  D) Funzionalità  E) Stile visivo  F) Responsive
 
-Formato: GENERATE:{"prompt":"[BRIEF DETTAGLIATO]","type":"full|update","description":"[nome app]"}
+Formato: GENERATE:{"prompt":"[BRIEF MAX 400 PAROLE]","type":"full|update","description":"[nome app]"}
 
 STEP 3 — MODIFICHE INCREMENTALI:
 - Piccola modifica → type:"update", descrivi SOLO cosa cambiare
@@ -1003,7 +1006,8 @@ async function generateApp(prompt, type = 'full', description = '') {
     syslog.textContent = '🚀 Generazione codice in corso...';
     document.getElementById('gen-status-text').textContent = description || 'Generazione in corso...';
     const generatorPrompt = buildGeneratorPrompt(finalPrompt, type);
-    const code = await callGeminiWithRetry(generatorPrompt, [{ role: 'user', parts: [{ text: finalPrompt }] }], true);
+    const safeprompt = finalPrompt.substring(0, 3000); // Limita a 3000 chars per evitare 500
+    const code = await callGeminiWithRetry(generatorPrompt, [{ role: 'user', parts: [{ text: safeprompt }] }], true);
     let cleanCode = selfHeal(code);
 
     // VERIFICA POST-GENERAZIONE
