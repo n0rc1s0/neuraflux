@@ -814,10 +814,29 @@ INTERVIEW:{"questions":[{"text":"Domanda 1?","options":["Opzione A","Opzione B",
 Massimo 4 domande. Opzioni brevi (max 3 parole ciascuna).
 ATTENZIONE: Se non usi esattamente questo formato le chips non appariranno mai.
 
-STEP 2 — Quando hai info sufficienti → GENERA con brief dettagliato (max 400 parole) che include:
-A) Tipo/scopo  B) Palette colori (#hex)  C) Sezioni principali  D) Funzionalità  E) Stile visivo  F) Responsive
+STEP 2 — Quando hai info sufficienti → costruisci un MASTER PROMPT professionale come farebbe un senior developer con 15 anni di esperienza.
+Il brief DEVE essere SPECIFICO, DETTAGLIATO e CONCRETO — non generico. Contieni SEMPRE:
+A) TIPO APP e scopo esatto
+B) PALETTE COLORI con hex esatti (sfondo, accent, testo, surface)
+C) OGNI SEZIONE descritta in dettaglio con cosa contiene visivamente
+D) OGNI FUNZIONALITA INTERATTIVA con comportamento preciso
+E) STILE VISIVO preciso (glassmorphism dark / minimal beige / colorato bold / etc)
+F) FONT Google Fonts (es: Nunito per giovanile, Playfair per elegante, Space Grotesk per tech)
+G) ANIMAZIONI specifiche (fadeInUp, hover scale, gradient animate)
+H) CONTENUTI REALI da mostrare nell app (nomi, valori, testi veri)
+I) MOBILE: bottom navigation, touch-friendly, layout responsive
 
-Formato: GENERATE:{"prompt":"[BRIEF MAX 400 PAROLE]","type":"full|update","description":"[nome app]"}
+ESEMPIO BRIEF SCARSO (NON fare così):
+"Crea un app per mestruazioni con calendario e sintomi. Design rosa e moderno."
+
+ESEMPIO BRIEF ECCELLENTE (fare SEMPRE così):
+"App ciclo mestruale per ragazze 16-30 anni. Design dark giovanile: sfondo #0d0d1a, surface #1a1033, accent gradient #ff6eb4→#c94fff, testo #f5e6ff. Font: Nunito 400/700 per body, Syne 800 per titoli. SEZIONI: 1) Home — hero con animazione luna che cambia fase, calendario mensile con giorni colorati per fase (mestruazione=rosso #ff4d6d, fertile=verde #52d68a, ovulazione=giallo #ffd166, PMS=viola #9b5de5), chip con giorno corrente del ciclo e countdown prossima mestruazione. 2) Log Giornaliero — grid 4x3 di emoji cliccabili con label: crampi, stanchezza, mal di testa, gonfiore, acne, umore felice/triste/ansioso/arrabbiato, libido, spotting. Toggle per flow intensity (leggero/medio/abbondante). Bottone salva con animazione confetti. 3) Statistiche — card con durata media ciclo, durata media mestruazione, grafico a barre ultimi 6 mesi. 4) Diario — textarea con auto-save, lista voci precedenti con data, possibilità di eliminare voce. 5) Risorse — 6 cards con consigli per fase: alimentazione, esercizio, skincare, umore. Navigazione: bottom tab bar su mobile (Home, Log, Stats, Diario, Risorse). Header con avatar e nome utente. Tutto salvato in localStorage. Animazioni: page transition fadeSlide, emoji bounce al click, calendario appare con staggered fadeIn. CSS: border-radius 20px ovunque, glassmorphism sulle card (backdrop-filter blur 20px), gradient sui bottoni."
+
+ALTRO ESEMPIO ECCELLENTE per e-commerce:
+"E-commerce scarpe streetwear per Gen Z. Sfondo #f8f4f0 (beige caldo), accent #ff3b00 (arancio bold), testo #1a1a1a. Font: Space Grotesk 700 per titoli, DM Sans per body. SEZIONI: 1) Header sticky con logo, ricerca live, icona carrello con badge counter rosso animato. 2) Hero fullscreen con headline bold 'DROP CULTURE IS DEAD. LONG LIVE YOUR STYLE.' e CTA. 3) Griglia prodotti 3 colonne (1 su mobile): card con immagine Unsplash sneakers, nome, prezzo, badge SOLD OUT/NEW, hover mostra secondo colore. Filtri: brand, taglia, prezzo (slider), colore (dot cliccabili). 4) Sidebar carrello: scorre da destra, lista prodotti con quantità +/-, subtotale, bottone checkout gradient. 5) Footer minimal. Prodotti: Nike Air Max 95 €180, New Balance 550 €120, Asics Gel-Kayano €160, Adidas Samba €110. Animazioni: product card tilt 3D su hover, carrello slide da destra, badge counter pulse."
+
+Formato obbligatorio — usa SEMPRE questo:
+GENERATE:{"prompt":"[BRIEF ULTRA-DETTAGLIATO COME GLI ESEMPI SOPRA — minimo 200 parole, specifico, con hex, font, sezioni descritte, funzionalità precise]","type":"full|update","description":"[nome breve app]"}
 
 STEP 3 — MODIFICHE INCREMENTALI:
 - Piccola modifica → type:"update", descrivi SOLO cosa cambiare
@@ -939,14 +958,20 @@ async function submitInterview(btn) {
   const container = btn.closest('.msg-fluxy');
   const questions = JSON.parse(container.dataset.questions || '[]');
   let summary = '';
+  const answers = {};
   questions.forEach((q, qi) => {
     const selected = container.querySelectorAll(`#interview-q${qi} .chip.selected`);
-    if (selected.length > 0) { const answers = Array.from(selected).map(c => c.textContent.replace('✓ ','')).join(', '); summary += `${q.text}: ${answers}\n`; }
+    if (selected.length > 0) {
+      const vals = Array.from(selected).map(c => c.textContent.replace('✓ ','')).join(', ');
+      summary += `${q.text}: ${vals}\n`;
+      answers[q.text] = vals;
+    }
   });
   btn.disabled = true; btn.textContent = '✓ Inviato';
   addFluxyMessage(summary.replace(/\n/g,'<br>'), 'user');
   chatHistory.push({ role: 'user', content: summary, timestamp: Date.now() });
-  await processWithFluxy(`Ho risposto:\n${summary}\n\nOra genera l'app con questi dettagli.`);
+  // Passa le risposte a Fluxy chiedendo esplicitamente un brief ultra-dettagliato
+  await processWithFluxy(`L'utente ha risposto all'intervista:\n${summary}\nOra costruisci un MASTER PROMPT ultra-dettagliato (minimo 300 parole) seguendo esattamente gli esempi nel tuo system prompt. Includi colori hex, font, ogni sezione descritta in dettaglio, funzionalità interattive precise, animazioni, layout mobile. Poi usa GENERATE: per avviare la generazione.`);
 }
 
 // ============================================================
@@ -1010,12 +1035,23 @@ async function generateApp(prompt, type = 'full', description = '') {
     const code = await callGeminiWithRetry(generatorPrompt, [{ role: 'user', parts: [{ text: safeprompt }] }], true);
     let cleanCode = selfHeal(code);
 
-    // VERIFICA POST-GENERAZIONE
-    const verifyResult = verifyCode(cleanCode);
-    if (!verifyResult.ok) {
-      syslog.textContent = '🔧 Rilevato problema — auto-correzione in corso...';
+    // VERIFICA POST-GENERAZIONE con self-healing fino a 3 tentativi
+    let healAttempts = 0;
+    const maxHealAttempts = 3;
+    while (healAttempts < maxHealAttempts) {
+      const verifyResult = verifyCode(cleanCode);
+      if (verifyResult.ok) break;
+      healAttempts++;
+      syslog.textContent = `🔧 Problema rilevato (tentativo ${healAttempts}/${maxHealAttempts})...`;
       const fixedCode = await autoFixCode(cleanCode, verifyResult.issue);
-      if (fixedCode) cleanCode = selfHeal(fixedCode);
+      if (fixedCode) {
+        cleanCode = selfHeal(fixedCode);
+      } else {
+        addFluxyMessage(`⚠️ Non riesco a correggere automaticamente dopo ${healAttempts} tentativi.<br>Problema: <em>${verifyResult.issue}</em><br><br>Provo a rigenerare da zero...`);
+        const regenCode = await callGeminiWithRetry(buildGeneratorPrompt(finalPrompt, 'full'), [{ role: 'user', parts: [{ text: finalPrompt }] }], true);
+        cleanCode = selfHeal(regenCode);
+        break;
+      }
     }
 
     clearInterval(progressInterval);
@@ -1059,9 +1095,17 @@ async function generateApp(prompt, type = 'full', description = '') {
 // VERIFICA E AUTO-FIX CODICE
 // ============================================================
 function verifyCode(code) {
-  if (!code.includes('<!DOCTYPE') && !code.includes('<html')) return { ok: false, issue: 'Codice incompleto — manca il DOCTYPE o il tag html' };
-  if (!code.includes('</html>')) return { ok: false, issue: 'Codice troncato — manca il tag di chiusura </html>' };
-  if (code.length < 500) return { ok: false, issue: 'Codice troppo corto — sembra incompleto' };
+  if (!code || code.trim().length === 0) return { ok: false, issue: 'Codice vuoto' };
+  if (!code.includes('<!DOCTYPE') && !code.includes('<html')) return { ok: false, issue: 'Manca DOCTYPE o tag html' };
+  if (!code.includes('</html>')) return { ok: false, issue: 'Codice troncato — manca </html>' };
+  if (!code.includes('<body')) return { ok: false, issue: 'Manca tag body' };
+  if (code.length < 800) return { ok: false, issue: 'Codice troppo corto — sembra incompleto' };
+  // Controlla backtick residui (codice non pulito)
+  if (code.startsWith('```')) return { ok: false, issue: 'Codice contiene backtick markdown — non pulito' };
+  // Conta tag aperti/chiusi critici
+  const divOpen = (code.match(/<div/g) || []).length;
+  const divClose = (code.match(/<\/div>/g) || []).length;
+  if (Math.abs(divOpen - divClose) > 10) return { ok: false, issue: `Tag div sbilanciati: ${divOpen} aperti, ${divClose} chiusi` };
   return { ok: true };
 }
 
