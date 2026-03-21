@@ -5,7 +5,7 @@ module.exports = async function handler(req, res) {
 
   return res.status(200).json({
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
-    hasGeminiKey: !!process.env.GEMINI_KEY,
+    hasGeminiKey: !!(process.env.GEMINI_KEY_FLUXY || process.env.GEMINI_KEY),
     version: '4.4'
   });
 };
