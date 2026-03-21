@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
 
 // ── FLUXY: Gemini → Groq fallback ─────────────────────────
 async function handleFluxy(body, res) {
-  const geminiKey = process.env.GEMINI_KEY;
+  const geminiKey = process.env.GEMINI_KEY_FLUXY || process.env.GEMINI_KEY;
 
   if (geminiKey) {
     try {
@@ -72,7 +72,7 @@ async function handleGenerator(body, res) {
   }
 
   // Fallback: Gemini
-  const geminiKey = process.env.GEMINI_KEY;
+  const geminiKey = process.env.GEMINI_KEY_FLUXY || process.env.GEMINI_KEY;
   if (geminiKey) {
     try {
       const cleanBody = { ...body };
