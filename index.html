@@ -879,14 +879,7 @@ async function handleFluxyResponse(response, originalText) {
 
   // Gestisci INTERVIEW
   if (text.includes('INTERVIEW:')) {
-    const jsonMatch = text.match(/INTERVIEW:(\{[\s\S]*?\})\s*(?:\n|$|GENERATE|MEMORY)?/);
-if (!jsonMatch) {
-  // Prova estrazione manuale del JSON
-  const start = text.indexOf('INTERVIEW:') + 'INTERVIEW:'.length;
-  const jsonStr = text.substring(start).trim();
-  try { renderInterview(JSON.parse(jsonStr)); } catch(e) { addFluxyMessage(text.replace(/INTERVIEW:[\s\S]*/g, '').trim()); }
-  return;
-}
+    const jsonMatch = text.match(/INTERVIEW:(\{[\s\S]*\})/);
     const beforeInterview = text.split('INTERVIEW:')[0].trim();
     if (beforeInterview) addFluxyMessage(beforeInterview);
     if (jsonMatch) {
