@@ -1,7 +1,4 @@
-// api/gemini.js — Proxy unificato con fallback a cascata
-// Fluxy: Gemini → Groq
-// Generatore: OpenRouter (Qwen3) → Gemini
-
+// api/gemini.js — Proxy con fallback a cascata + body parsing
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -9,49 +6,42 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metodo non consentito' });
 
-  const caller = req.body._caller || 'fluxy';
+  // Parsa il body manualmente se non è già parsato
+  let body = req.body;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch(e) { return res.status(400).json({ error: 'Body JSON non valido' }); }
+  }
+  if (!body) return res.status(400).json({ error: 'Body mancante' });
+
+  const caller = body._caller || 'fluxy';
   const isGenerator = caller === 'generator';
 
   if (isGenerator) {
-    return handleGenerator(req, res);
+    return handleGenerator(body, res);
   } else {
-    return handleFluxy(req, res);
+    return handleFluxy(body, res);
   }
 };
 
-// ── GENERATORE: OpenRouter → Gemini fallback ───────────────
-async function handleGenerator(req, res) {
-  const orKey = process.env.OPENROUTER_KEY;
-  if (orKey) {
-    try {
-      const result = await callOpenRouter(req.body, orKey);
-      if (result) return res.status(200).json(result);
-    } catch(e) {
-      console.error('OpenRouter failed, fallback to Gemini:', e.message);
-    }
-  }
-  return callGeminiProxy(req, res, 'gemini-2.5-flash');
-}
-
 // ── FLUXY: Gemini → Groq fallback ─────────────────────────
-async function handleFluxy(req, res) {
+async function handleFluxy(body, res) {
   const geminiKey = process.env.GEMINI_KEY;
+
   if (geminiKey) {
     try {
-      const body = { ...req.body };
-      delete body._caller;
+      const cleanBody = { ...body };
+      delete cleanBody._caller;
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiKey}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanBody) }
       );
       if (response.ok) {
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.map(p => p.text||'').join('');
+        const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('');
         if (text) return res.status(200).json(data);
       }
-      // Se 429 o errore → prova Groq
     } catch(e) {
-      console.error('Gemini failed, fallback to Groq:', e.message);
+      console.error('Gemini fallito:', e.message);
     }
   }
 
@@ -59,14 +49,81 @@ async function handleFluxy(req, res) {
   const groqKey = process.env.GROQ_KEY;
   if (groqKey) {
     try {
-      const result = await callGroq(req.body, groqKey);
+      const result = await callGroq(body, groqKey);
       if (result) return res.status(200).json(result);
     } catch(e) {
-      console.error('Groq also failed:', e.message);
+      console.error('Groq fallito:', e.message);
     }
   }
 
-  return res.status(503).json({ error: 'Tutti i servizi AI sono temporaneamente non disponibili. Riprova tra qualche minuto.' });
+  return res.status(503).json({ error: 'Servizi AI temporaneamente non disponibili. Riprova tra qualche minuto.' });
+}
+
+// ── GENERATORE: OpenRouter → Gemini fallback ───────────────
+async function handleGenerator(body, res) {
+  const orKey = process.env.OPENROUTER_KEY;
+  if (orKey) {
+    try {
+      const result = await callOpenRouter(body, orKey);
+      if (result) return res.status(200).json(result);
+    } catch(e) {
+      console.error('OpenRouter fallito:', e.message);
+    }
+  }
+
+  // Fallback: Gemini
+  const geminiKey = process.env.GEMINI_KEY;
+  if (geminiKey) {
+    try {
+      const cleanBody = { ...body };
+      delete cleanBody._caller;
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanBody) }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        return res.status(200).json(data);
+      }
+      const err = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ error: err.error?.message || `Errore ${response.status}` });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  return res.status(503).json({ error: 'Nessuna chiave API configurata. Aggiungi GEMINI_KEY su Vercel.' });
+}
+
+// ── Groq ───────────────────────────────────────────────────
+async function callGroq(body, key) {
+  const { system_instruction, contents, generationConfig } = body;
+  const systemText = system_instruction?.parts?.map(p => p.text).join('\n') || '';
+  const messages = [];
+  if (systemText) messages.push({ role: 'system', content: systemText });
+  for (const c of (contents || [])) {
+    const role = c.role === 'model' ? 'assistant' : 'user';
+    const text = (c.parts || []).filter(p => p.text).map(p => p.text).join('\n');
+    if (text) messages.push({ role, content: text });
+  }
+  if (!messages.length) return null;
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      max_tokens: generationConfig?.maxOutputTokens || 1200,
+      temperature: generationConfig?.temperature || 0.9
+    })
+  });
+
+  if (!response.ok) return null;
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content || '';
+  if (!text) return null;
+  return { candidates: [{ content: { parts: [{ text }] } }] };
 }
 
 // ── OpenRouter ─────────────────────────────────────────────
@@ -75,7 +132,6 @@ async function callOpenRouter(body, key) {
   const systemText = system_instruction?.parts?.map(p => p.text).join('\n') || '';
   const messages = [];
   if (systemText) messages.push({ role: 'system', content: systemText });
-
   for (const c of (contents || [])) {
     const role = c.role === 'model' ? 'assistant' : 'user';
     const textParts = (c.parts || []).filter(p => p.text).map(p => p.text).join('\n');
@@ -87,10 +143,11 @@ async function callOpenRouter(body, key) {
         content.push({ type: 'image_url', image_url: { url: `data:${img.inlineData.mimeType};base64,${img.inlineData.data}` } });
       }
       messages.push({ role, content });
-    } else {
+    } else if (textParts) {
       messages.push({ role, content: textParts });
     }
   }
+  if (!messages.length) return null;
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -113,57 +170,4 @@ async function callOpenRouter(body, key) {
   const text = data.choices?.[0]?.message?.content || '';
   if (!text) return null;
   return { candidates: [{ content: { parts: [{ text }] } }] };
-}
-
-// ── Groq ───────────────────────────────────────────────────
-async function callGroq(body, key) {
-  const { system_instruction, contents, generationConfig } = body;
-  const systemText = system_instruction?.parts?.map(p => p.text).join('\n') || '';
-  const messages = [];
-  if (systemText) messages.push({ role: 'system', content: systemText });
-
-  for (const c of (contents || [])) {
-    const role = c.role === 'model' ? 'assistant' : 'user';
-    const text = (c.parts || []).filter(p => p.text).map(p => p.text).join('\n');
-    if (text) messages.push({ role, content: text });
-  }
-
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages,
-      max_tokens: generationConfig?.maxOutputTokens || 1200,
-      temperature: generationConfig?.temperature || 0.9
-    })
-  });
-
-  if (!response.ok) return null;
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content || '';
-  if (!text) return null;
-  return { candidates: [{ content: { parts: [{ text }] } }] };
-}
-
-// ── Gemini diretto ─────────────────────────────────────────
-async function callGeminiProxy(req, res, model) {
-  const key = process.env.GEMINI_KEY;
-  if (!key) return res.status(500).json({ error: 'GEMINI_KEY non configurata su Vercel.' });
-  const body = { ...req.body };
-  delete body._caller;
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-    );
-    const data = await response.json();
-    if (!response.ok) return res.status(response.status).json({ error: data.error?.message || `Errore ${response.status}` });
-    return res.status(200).json(data);
-  } catch(e) {
-    return res.status(500).json({ error: e.message });
-  }
 }
